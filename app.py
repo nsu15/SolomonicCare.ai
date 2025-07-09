@@ -10,6 +10,7 @@ from openai import OpenAI
 from rapidfuzz import process
 from dotenv import load_dotenv
 from google.cloud import texttospeech
+from google.oauth2 import service_account
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -42,7 +43,14 @@ def filter_and_rank_places(places, mode):
     return filtered
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-tts_client = texttospeech.TextToSpeechClient()
+creds_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if creds_json:
+    creds_dict = json.loads(creds_json)
+    credentials = service_account.Credentials.from_service_account_info(creds_dict)
+    tts_client = texttospeech.TextToSpeechClient(credentials=credentials)
+else:
+    tts_client = texttospeech.TextToSpeechClient()
+
 GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
 GOOGLE_DIRECTIONS_API_KEY = os.environ.get("GOOGLE_DIRECTIONS_API_KEY")
 
