@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
   <style>
+    
     body { margin:0; padding:0; background:#f5f8ff; font-family:'Playfair Display',serif; color:#222; display:flex; flex-direction:column; align-items:center; min-height:100vh;}
     h1{color:#1c3faa;font-size:2.5rem;font-weight:700;text-align:center;margin:1.5rem 0 0.5rem;}
     p.subtitle{font-size:1rem;font-style:italic;color:#555;text-align:center;max-width:600px;margin-bottom:1.5rem;}
@@ -78,8 +79,8 @@
     flex: 1 1 auto !important;
     min-width: 0 !important;
   }
-}
 
+ }
 
 
   </style>
@@ -96,18 +97,20 @@
       <option value="wisdom">📖 Wisdom to Understand – Diagnoses & Coping</option>
       <option value="companion">💬 A Thoughtful Companion – Peer Support</option>
     </select>
-    <button class="submit-btn" id="start-conversation-btn">Start Conversation</button>
-    <div class="center-controls">
-      <button class="small-btn" id="view-history-btn">View Past Conversations</button>
-      <select class="history-select" id="history-range" style="display:none;">
-        <option value="24h">Last 24 hours</option>
-        <option value="1w">Last week</option>
-        <option value="2w">Last 2 weeks</option>
-        <option value="30d">Last 30 days</option>
-      </select>
-      <button class="small-btn" id="back-to-chat-btn" style="display:none;">Back to Chat</button>
-      <button class="small-btn" id="clear-history-btn" style="display:none;">Clear History</button>
-    </div>
+    <!-- Buttons for main chat page -->
+<div id="main-chat-buttons">
+  <button id="start-conversation-btn">Start Conversation</button>
+  <button id="view-past-conversations-btn">View Past Conversations</button>
+</div>
+
+<!-- Buttons for view past conversations page -->
+<div id="past-conversations-buttons" style="display:none;">
+  <button id="start-conversation-btn-alt">Start Conversation</button>
+  <button id="last-24-hours-btn">Last 24 Hours</button>
+  <button id="back-to-chat-btn">Back to Chat</button>
+  <button id="clear-history-btn">Clear History</button>
+</div>
+
   </div>
 
   <div class="result-container" id="result-container" role="region" aria-live="polite" aria-atomic="true" tabindex="0"></div>
@@ -885,6 +888,25 @@ async function startConversation() {
   // On page load:
   archiveOldChatIfPresent();
   loadChatHistory();
+
+  // === New Button Visibility Logic (Safe Addition) ===
+document.getElementById("main-chat-buttons").style.display = "block";
+document.getElementById("past-conversations-buttons").style.display = "none";
+
+startConversationBtn.addEventListener("click", () => {
+  document.getElementById("main-chat-buttons").style.display = "none";
+  document.getElementById("past-conversations-buttons").style.display = "none";
+});
+
+viewHistoryBtn.addEventListener("click", () => {
+  document.getElementById("main-chat-buttons").style.display = "none";
+  document.getElementById("past-conversations-buttons").style.display = "block";
+});
+
+backToChatBtn.addEventListener("click", () => {
+  document.getElementById("main-chat-buttons").style.display = "block";
+  document.getElementById("past-conversations-buttons").style.display = "none";
+
 });
 </script>
 </body>
