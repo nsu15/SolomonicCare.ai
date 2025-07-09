@@ -36,6 +36,75 @@
     #stop-voice-btn:hover{background:#162e8d;}
     footer{margin-top:3rem;text-align:center;font-size:0.85rem;color:#777;}
     .powered{margin-top:0.5rem;font-size:0.85rem;color:#999;text-align:center;}
+    /* Mobile-only adjustments */
+@media (max-width: 768px) {
+  /* Ensure main container fits mobile screen */
+  .container, 
+  .main-wrapper, 
+  body {
+    max-width: 100vw;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  /* Scale down fonts a bit */
+  h1, h2, h3, p, button, input, select, textarea {
+    font-size: 90%; /* adjust as needed */
+  }
+
+  /* Make buttons and inputs fill width but not overflow */
+  button, input, select, textarea {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* If using flex layouts, enable wrapping */
+  .flex-container {
+    flex-wrap: wrap;
+  }
+
+  /* Images scale down */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  button {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+    html, body {
+    overflow-x: hidden;
+  }
+
+  .chat-container, .button-row, .conversation-view {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+    .chat-box, .message-input, .conversation-controls {
+    padding: 0.5rem;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  .message {
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+
+}
+
   </style>
 </head>
 <body>
