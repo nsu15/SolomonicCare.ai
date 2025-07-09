@@ -36,7 +36,28 @@
     #stop-voice-btn:hover{background:#162e8d;}
     footer{margin-top:3rem;text-align:center;font-size:0.85rem;color:#777;}
     .powered{margin-top:0.5rem;font-size:0.85rem;color:#999;text-align:center;}
-    
+    @media (max-width: 768px) {
+  .prompt-container,
+  .result-container {
+    max-width: 90vw !important;
+    padding: 1rem !important;
+  }
+  
+  input[type="text"],
+  select,
+  button.submit-btn,
+  .small-btn,
+  .history-select {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-size: 0.9rem;
+    overflow-x: hidden;
+  }
+}
+
   </style>
 </head>
 <body>
