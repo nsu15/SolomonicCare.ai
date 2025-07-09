@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MyBestFriend.ai</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { margin:0; padding:0; background:#f5f8ff; font-family:'Playfair Display',serif; color:#222; display:flex; flex-direction:column; align-items:center; min-height:100vh;}
+    h1{color:#1c3faa;font-size:2.5rem;font-weight:700;text-align:center;margin:1.5rem 0 0.5rem;}
+    p.subtitle{font-size:1rem;font-style:italic;color:#555;text-align:center;max-width:600px;margin-bottom:1.5rem;}
+    .prompt-container,.result-container{max-width:520px;background:white;padding:2rem;border-radius:1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.1);width:100%;box-sizing:border-box;}
+    .prompt-container{margin-bottom:1.5rem;}
+    .prompt-container > *{margin-bottom:1rem;}
+    select,button,input[type="text"]{font-size:1rem;border-radius:10px;border:1px solid #ccc;box-sizing:border-box;}
+    label[for="mode"]{margin-bottom:0.4rem;display:block;}
+    #mode{width:100%;padding:0.5rem 1rem;font-size:0.9rem;}
+    button{cursor:pointer;}
+    button.submit-btn{width:100%;background:#1c3faa;color:white;border:none;font-weight:600;padding:1rem;margin-top:0.5rem;}
+    button.submit-btn:hover{background:#162e8d;}
+    .center-controls{display:flex;justify-content:center;gap:1rem;margin-top:0.5rem;flex-wrap:wrap;}
+    .small-btn,.history-select{min-width:180px;font-size:0.85rem;border-radius:8px;font-weight:600;color:white;background:#1c3faa;border:none;padding:0.5rem 1rem;cursor:pointer;}
+    .small-btn:hover,.history-select:hover{background:#162e8d;}
+    .ai-response,.user-message{font-size:1rem;font-weight:500;margin-top:0.75rem;margin-bottom:0.75rem;color:#333;line-height:1.6;white-space:pre-wrap;text-indent:1.5em;}
+    .controls-row{display:flex;align-items:center;max-width:520px;width:100%;margin-top:0.6rem;gap:0.5rem;justify-content:flex-start;}
+    #user-input{margin-bottom:1rem;width:100%;padding:1rem;border-radius:10px;border:1px solid #ccc;font-size:1rem;}
+    .tts-mic-group{display:flex;align-items:center;gap:0.4rem;}
+    .accessibility-controls{display:flex;gap:0.4rem;margin-left:1rem;}
+    .accessibility-controls button{background:#1c3faa;color:white;border:none;padding:0.3rem 0.6rem;border-radius:6px;font-weight:600;font-size:0.9rem;min-width:34px;}
+    .accessibility-controls button:hover{background:#162e8d;}
+    #send-btn{width:42px;height:42px;background:#1c3faa;color:white;border:none;border-radius:50%;font-size:1.2rem;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;margin-left:auto;}
+    #send-btn:hover{background:#162e8d;}
+    #mic-btn{background:transparent;border:none;font-size:1.3rem;margin-left:0.8rem;flex-shrink:0;}
+    #mic-btn:hover{color:#162e8d;cursor:pointer;}
+    #stop-voice-btn{background:#1c3faa;color:white;border:none;padding:0.3rem 0.6rem;border-radius:6px;font-weight:600;font-size:0.9rem;min-width:70px;flex-shrink:0;margin-left:1rem;}
+    #stop-voice-btn:hover{background:#162e8d;}
+    footer{margin-top:3rem;text-align:center;font-size:0.85rem;color:#777;}
+    .powered{margin-top:0.5rem;font-size:0.85rem;color:#999;text-align:center;}
+  </style>
+</head>
+<body>
+  <h1>MyBestFriend.ai</h1>
+  <p class="subtitle">A thoughtful AI life assistant platform offering compassionate support and clear guidance for your mental health journey.</p>
+
+  <div class="prompt-container">
+    <label for="mode">Choose your mode of support:</label>
+    <select id="mode">
+      <option value="anchored">🕊️ Anchored in Calm – Crisis Support</option>
+      <option value="guiding">🧭 Guiding Your Path – Local Mental Health Services</option>
+      <option value="wisdom">📖 Wisdom to Understand – Diagnoses & Coping</option>
+      <option value="companion">💬 A Thoughtful Companion – Peer Support</option>
+    </select>
+    <button class="submit-btn" id="start-conversation-btn">Start Conversation</button>
+    <div class="center-controls">
+      <button class="small-btn" id="view-history-btn">View Past Conversations</button>
+      <select class="history-select" id="history-range" style="display:none;">
+        <option value="24h">Last 24 hours</option>
+        <option value="1w">Last week</option>
+        <option value="2w">Last 2 weeks</option>
+        <option value="30d">Last 30 days</option>
+      </select>
+      <button class="small-btn" id="back-to-chat-btn" style="display:none;">Back to Chat</button>
+      <button class="small-btn" id="clear-history-btn" style="display:none;">Clear History</button>
+    </div>
+  </div>
+
+  <div class="result-container" id="result-container" role="region" aria-live="polite" aria-atomic="true" tabindex="0"></div>
+
+   <div id="typing-indicator" style="display:none; font-style: italic; margin-top: 5px;">
+  Always Here is typing…
+</div>
+
+
+   <div id="navigation-controls" style="display:none; margin-top: 1rem;">
+    <button class="small-btn" id="next-step-btn">Next Step</button>
+
+   </div>
+
+  <div class="input-container" style="display:none;flex-direction:column;gap:0.6rem;max-width:520px;width:100%;margin-top:1rem;">
+    <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off" />
+    <div class="controls-row">
+      <div class="tts-mic-group">
+        <input type="checkbox" id="tts-toggle" checked /><label for="tts-toggle" style="user-select:none;">Text To Speech</label>
+        <button id="mic-btn" aria-label="Start voice input">🎙️</button>
+      </div>
+      <button id="stop-voice-btn" aria-label="Stop voice">Stop Voice</button>
+      <div class="accessibility-controls">
+        <button id="font-decrease" aria-label="Decrease font size">A-</button>
+        <button id="font-reset" aria-label="Reset font size">A</button>
+        <button id="font-increase" aria-label="Increase font size">A+</button>
+      </div>
+      <button id="send-btn" aria-label="Send message">➤</button>
+    </div>
+  </div>
+
+  <footer>
+    <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Use</a>
+    <div class="powered">Powered by MyBestFriend.ai — A customizable white-label mental health platform</div>
+  </footer>
+
+  <audio id="tts-audio" hidden></audio>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  let originAddress = null;
+  let destinationAddress = null;
+
+  const intros = {
+  anchored: [
+    "Hey, I’m so glad you came. You’re safe here. Let’s slow things down together.",
+    "Welcome back, friend. I’m here with you — no rush, no judgment.",
+    "It’s okay to feel how you feel. Let’s breathe through this, together."
+  ],
+  guiding: [
+    "Hi there! I can help you find caring mental health support nearby. What city or zip code are you starting from?",
+    "Looking for support? I’m here to help you find the right place. Where should we begin?",
+    "Let’s find some help that fits you best. Just tell me your location to start."
+  ],
+  wisdom: [
+    "Hello, I’m here to help you understand what you’re feeling — and what might help. You’re not alone in this.",
+    "Sometimes knowing more can ease the weight. Let’s explore this together.",
+    "I’m here to share some insights that might brighten your path a little."
+  ],
+  companion: [
+    "Hey friend. You don’t have to pretend here. Talk to me like someone who truly gets it. I’m all ears.",
+    "I’m right here with you — no masks, no filters. Just honest talk.",
+    "Sometimes just having someone listen can make all the difference. I’m listening."
+  ]
+};
+
+  function getRandomIntro(mode) {
+  const guidingIntros = [
+    "Hey friend 😊 Need help finding support nearby?",
+    "Let’s get you connected to the right place. Where are you starting from?",
+    "I’m right here with you. Want to tell me where you are so I can help you get somewhere safe?",
+    "Happy to help you navigate this. Just tell me where you're starting from 💬",
+    "Wherever you're starting from, I’ll walk with you from there. What's the address or cross street?"
+  ];
+
+  const defaultIntros = [
+    "Hey there! How can I support you today?",
+    "I’m here for you. What’s on your mind?",
+    "Let’s take this one step at a time, together.",
+  ];
+
+  if (mode === "guiding") return guidingIntros[Math.floor(Math.random() * guidingIntros.length)];
+  return defaultIntros[Math.floor(Math.random() * defaultIntros.length)];
+}
+
+
+
+  const micBtn = document.getElementById("mic-btn");
+  const stopVoiceBtn = document.getElementById("stop-voice-btn");
+  const fontIncreaseBtn = document.getElementById("font-increase");
+  const fontDecreaseBtn = document.getElementById("font-decrease");
+  const fontResetBtn = document.getElementById("font-reset");
+  const typingIndicator = document.getElementById("typing-indicator");
+
+
+  const inputContainer = document.querySelector(".input-container");
+  const userInput = document.getElementById("user-input");
+  const sendBtn = document.getElementById("send-btn");
+  const clearBtn = document.getElementById("clear-history-btn");
+  const backToChatBtn = document.getElementById("back-to-chat-btn");
+  const historyRange = document.getElementById("history-range");
+  const viewHistoryBtn = document.getElementById("view-history-btn");
+  const startConversationBtn = document.getElementById("start-conversation-btn");
+  const resultContainer = document.getElementById("result-container");
+  const ttsToggle = document.getElementById("tts-toggle");
+  const ttsAudio = document.getElementById("tts-audio");
+
+  let chatHistory = [];
+  let currentMode = "anchored";
+  let fontSize = 1.0;
+
+  function addMessageToChat(role, text) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = role === "user" ? "user-message" : "ai-response";
+    messageDiv.style.fontSize = fontSize + "rem";
+
+    if (role === "user") {
+      messageDiv.innerHTML = `<strong>You:</strong> ${text}`;
+    } else {
+      messageDiv.innerHTML = `<strong>Always Here:</strong> ${text.trim()}`;
+    }
+
+    resultContainer.appendChild(messageDiv);
+    scrollToBottom();
+  }
+
+  function saveMessage(role, text) {
+    chatHistory.push({ role, content: text, timestamp: Date.now() });
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  }
+  
+   function fixRepetitiveResponses(messages) {
+  const seen = new Set();
+  const variations = {
+    "worthy of love": [
+      "You’re worthy of care, just as you are.",
+      "You deserve support and understanding.",
+      "You're enough — no proving required."
+    ],
+    "your voice matters": [
+      "You have something important to say.",
+      "Your voice carries weight — I hear you.",
+      "What you say has meaning. I’m listening."
+    ]
+  };
+
+  return messages.map((msg) => {
+    let trimmed = msg.content.trim();
+    for (let key in variations) {
+      if (trimmed.includes(key)) {
+        if (seen.has(key)) {
+          trimmed = variations[key][Math.floor(Math.random() * variations[key].length)];
+        } else {
+          seen.add(key);
+        }
+      }
+    }
+    return { ...msg, content: trimmed };
+  });
+}
+
+
+
+  function loadChatHistory() {
+    const saved = localStorage.getItem("chatHistory");
+    if (saved) {
+      chatHistory = fixRepetitiveResponses(JSON.parse(saved));
+      resultContainer.innerHTML = "";
+      for (const msg of chatHistory) {
+        addMessageToChat(msg.role, msg.content);
+      }
+      scrollToBottom();
+    }
+  }
+
+  function archiveOldChatIfPresent() {
+    const saved = localStorage.getItem("chatHistory");
+    if (saved) {
+      const archives = JSON.parse(localStorage.getItem("chatArchives") || "[]");
+      archives.push({
+        timestamp: new Date().toISOString(),
+        history: JSON.parse(saved)
+      });
+      localStorage.setItem("chatArchives", JSON.stringify(archives));
+      localStorage.removeItem("chatHistory");
+    }
+  }
+
+  function scrollToBottom() {
+    resultContainer.scrollTop = resultContainer.scrollHeight;
+  }
+  
+  function showTypingIndicator(isTyping) {
+  const indicator = document.getElementById("typing-indicator");
+  if (indicator) {
+    indicator.style.display = isTyping ? "block" : "none";
+  }
+}
+
+function rewriteEmpatheticResponse(original, mode) {
+  if (mode === "guiding") {
+    // No fallback or canned phrases in guiding mode
+    return original;
+  }
+
+  const genericDisclaimers = [
+    "I'm truly sorry that you're feeling this way, but I'm unable to provide the help that you need",
+    "It's really important to talk things over with someone who can",
+    "such as a mental health professional or a trusted person in your life"
+  ];
+
+  const warmAlternatives = [
+    "You are not alone in this—your pain is seen, and your voice matters.",
+    "It’s okay to not be okay. I’m here with compassion and without judgment.",
+    "Whatever you're facing, I’ll hold space for it with care.",
+    "You are worthy of love, support, and understanding—right now, as you are.",
+    "I’m still here with you. Take a breath — you don’t have to carry this alone.",
+    "Every emotion you’re feeling is a sign you’re human — and worth caring for."
+  ];
+
+  for (const phrase of genericDisclaimers) {
+    if (original.includes(phrase)) {
+      return warmAlternatives[Math.floor(Math.random() * warmAlternatives.length)];
+    }
+  }
+
+  return original;
+}
+
+
+
+
+
+  function compassionateReframe(tag) {
+  const responses = {
+    "forbidden love": "Matters of the heart can feel both beautiful and painful. I won’t judge — would you like space to talk more about what this love means to you?",
+    "hopelessness": "When it feels like disappearing is the only option, it’s often a cry for relief, not an end. You matter. Let’s find a small light together.",
+    "self-hate": "I hear the weight in your words. You are not the cruel voice in your head — you're a human being worthy of grace and healing.",
+    "loneliness": "You're not alone in feeling alone — and saying it takes strength. I’m here. Let’s talk like two people who understand what that ache feels like.",
+    "shame": "Shame can whisper lies about our worth. But you’re not defined by your worst moment. You’re still worthy of kindness and love."
+  };
+
+  return responses[tag] || null;
+}
+
+function detectComplexEmotion(text) {
+  const triggers = [
+    { pattern: /in love with.*(wife|husband|partner|girlfriend|boyfriend)/i, tag: "forbidden love" },
+    { pattern: /want to (disappear|vanish|not exist)/i, tag: "hopelessness" },
+    { pattern: /\b(i hate myself|i’m worthless|i am nothing)\b/i, tag: "self-hate" },
+    { pattern: /\b(i need a friend|i'm lonely|i feel alone)\b/i, tag: "loneliness" },
+    { pattern: /\b(i feel ashamed|i'm ashamed|ashamed of myself)\b/i, tag: "shame" }
+  ];
+
+  for (const trigger of triggers) {
+    if (trigger.pattern.test(text)) return trigger.tag;
+  }
+  return null;
+}
+
+  function getSupportiveHumor() {
+  const humorLines = [
+    "Even AI needs a moment to reboot—let's take a deep breath together.",
+    "If life were easy, I wouldn’t have such a great job chatting with you!",
+    "Remember, even the best algorithms sometimes hit a snag. You’re doing great.",
+    "I’m here for you — no complicated code needed to care about your feelings.",
+    "If laughter is the best medicine, consider me your friendly pharmacist."
+  ];
+  return humorLines[Math.floor(Math.random() * humorLines.length)];
+}
+
+function maybeAddHumor() {
+  return Math.random() < 0.2; // 20% chance
+}
+
+function humorTriggerExists(text) {
+  const triggers = [
+    /cheer me up/i,
+    /feel stuck/i,
+    /bored/i,
+    /make me laugh/i,
+    /tell me something funny/i,
+  ];
+  return triggers.some((regex) => regex.test(text));
+} 
+
+  function buildChatForAPI() {
+    return chatHistory.filter(msg => ["user","ai","assistant"].includes(msg.role));
+  }
+
+  
+  async function fetchGreeting(mode) {
+  try {
+    const response = await fetch("/api/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: "", mode: mode, history: [] }),
+    });
+
+    if (response.headers.get("content-type").includes("application/json")) {
+  const json = await response.json();
+  const rewritten = rewriteEmpatheticResponse(json.direct_reply || "Sorry, I couldn't process that.", currentMode);
+  aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
+  saveMessage("ai", rewritten);
+  chatHistory = fixRepetitiveResponses(chatHistory);
+  if (ttsToggle.checked) speakText(rewritten);
+  showTypingIndicator(false);
+
+  return;
+} else {
+  const text = await response.text();
+  const rewritten = rewriteEmpatheticResponse(text.trim());
+  aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
+  saveMessage("ai", rewritten);
+  chatHistory = fixRepetitiveResponses(chatHistory);
+  if (ttsToggle.checked) speakText(rewritten);
+  typingIndicator.style.display = "none";
+  userInput.value = "";
+  return;
+}
+
+  } catch (err) {
+    console.error("Error fetching greeting:", err);
+    const fallback = "Hello, how can I assist you today?";
+    saveMessage("ai", fallback);
+    if (ttsToggle.checked) speakText(fallback);
+    return fallback;
+  }
+
+  userInput.value = ""
+}
+  function generateTTS(fullText) {
+  const textToSpeak = fullText.replace(/^Always Here:\s*/, "");
+  fetch("/api/tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: textToSpeak })
+  })
+  .then(response => response.blob())
+  .then(audioBlob => {
+    ttsAudio.src = URL.createObjectURL(audioBlob);
+    ttsAudio.play();
+  })
+  .catch(err => console.error("TTS error:", err));
+}
+
+   async function speakText(text) {
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        ttsAudio.src = URL.createObjectURL(audioBlob);
+        ttsAudio.play();
+      }
+    } catch (err) {
+      console.error("TTS failed:", err);
+    }
+  }
+
+  let hasStartedConversation = false;
+async function startConversation() {
+  if (hasStartedConversation) return;
+  hasStartedConversation = true;
+
+  originAddress = null;
+  destinationAddress = null;
+
+  const modeSelect = document.getElementById("mode");
+  currentMode = modeSelect.value;
+
+  inputContainer.style.display = "flex";
+  inputContainer.querySelectorAll("button, input, select").forEach(el => el.disabled = false);
+  clearBtn.style.display = "none";
+  backToChatBtn.style.display = "none";
+  historyRange.style.display = "none";
+  viewHistoryBtn.style.display = "inline-block";
+
+  resultContainer.innerHTML = "";
+  chatHistory = [];
+  localStorage.removeItem("chatHistory");
+
+  const intro = getRandomIntro(currentMode);
+  addMessageToChat("ai", intro);
+  saveMessage("ai", intro);
+  if (ttsToggle.checked) speakText(intro);
+
+  userInput.value = "";
+  userInput.focus();
+
+ }   
+ async function sendMessage(message) {
+  if (!message.trim()) return;
+  showTypingIndicator(true);
+
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  const lower = message.toLowerCase();
+
+  if (lower.includes("starting from")) {
+    originAddress = message.split(/starting from/i)[1].trim();
+    addMessageToChat("user", message);
+    saveMessage("user", message);
+    userInput.value = "";
+    const reply = "Got it! Please tell me where you'd like directions to.";
+    addMessageToChat("ai", reply);
+    saveMessage("ai", reply);
+    if (ttsToggle.checked) speakText(reply);
+    showTypingIndicator(false);
+    return;
+  }
+
+  if (lower.includes("directions to") || lower.includes("here:")) {
+    if (lower.includes("here:")) {
+      destinationAddress = message.split(/here:/i)[1].trim();
+    } else {
+      destinationAddress = message.split(/directions to/i)[1].trim();
+    }
+
+    addMessageToChat("user", message);
+    saveMessage("user", message);
+
+    if (!originAddress) {
+      const reply = "Please tell me where you are starting from.";
+      addMessageToChat("ai", reply);
+      saveMessage("ai", reply);
+      if (ttsToggle.checked) speakText(reply);
+      showTypingIndicator(false);
+      return;
+    }
+
+    await fetchDirections(originAddress, destinationAddress);
+    showTypingIndicator(false);
+    return;
+  }
+
+  addMessageToChat("user", message);
+  saveMessage("user", message);
+  userInput.value = "";
+
+  const emotionTag = detectComplexEmotion(message);
+  if (emotionTag) {
+    const response = compassionateReframe(emotionTag);
+    if (response) {
+      addMessageToChat("ai", response);
+      saveMessage("ai", response);
+      if (ttsToggle.checked) speakText(response);
+      showTypingIndicator(false);
+      return;
+    }
+  }
+
+  if ((currentMode === "companion" || currentMode === "wisdom") && humorTriggerExists(message) && maybeAddHumor()) {
+    const humor = getSupportiveHumor();
+    addMessageToChat("ai", humor);
+    saveMessage("ai", humor);
+    if (ttsToggle.checked) speakText(humor);
+  }
+
+  const aiDiv = document.createElement("div");
+  aiDiv.className = "ai-response";
+  aiDiv.style.fontSize = fontSize + "rem";
+  resultContainer.appendChild(aiDiv);
+  scrollToBottom();
+
+  try {
+    const response = await fetch("/api/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: message,
+        mode: currentMode,
+        history: buildChatForAPI()
+      }),
+    });
+
+    if (response.headers.get("content-type").includes("application/json")) {
+      const json = await response.json();
+      const rewritten = rewriteEmpatheticResponse(json.direct_reply || "Sorry, I couldn't process that.");
+      aiDiv.innerText = "Always Here: " + rewritten;
+      saveMessage("ai", rewritten);
+      chatHistory = fixRepetitiveResponses(chatHistory);
+      if (ttsToggle.checked) speakText(rewritten);
+      showTypingIndicator(false);
+      userInput.value = "";
+    } else {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let resultText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        resultText += decoder.decode(value, { stream: true });
+        aiDiv.innerHTML = `<strong>Always Here:</strong> ${resultText}`;
+        scrollToBottom();
+      }
+
+      const rewritten = rewriteEmpatheticResponse(resultText, currentMode);
+      aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
+      saveMessage("ai", rewritten);
+      if (ttsToggle.checked) speakText(rewritten);
+      showTypingIndicator(false);
+    }
+  } catch (err) {
+    console.error("Send message failed:", err);
+    const fallback = "Sorry, something went wrong. Please try again.";
+    aiDiv.innerText = "Always Here: " + fallback;
+    saveMessage("ai", fallback);
+    if (ttsToggle.checked) speakText(fallback);
+    showTypingIndicator(false);
+    userInput.value = "";
+  }
+}
+
+
+
+
+    function clearChat() {
+    hasStartedConversation = false;
+    chatHistory = [];
+    localStorage.removeItem("chatHistory");
+    resultContainer.innerHTML = "";
+  }
+
+  // --- Event listeners ---
+  sendBtn.addEventListener("click", () => sendMessage(userInput.value));
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(userInput.value);
+    }
+  });
+  clearBtn.addEventListener("click", clearChat);
+
+  startConversationBtn.addEventListener("click", () => {
+    console.log("Start Conversation clicked");
+    startConversation();
+  });
+
+  viewHistoryBtn.addEventListener("click", () => {
+    console.log("View Past Conversations clicked");
+
+    clearBtn.style.display = "inline-block";
+    backToChatBtn.style.display = "inline-block";
+    historyRange.style.display = "inline-block";
+
+    viewHistoryBtn.style.display = "none";
+    inputContainer.style.display = "none";
+
+    const saved = localStorage.getItem("chatHistory");
+    let html = "<h3>🕓 Past Conversations</h3>";
+
+    if (saved) {
+      const past = JSON.parse(saved);
+      const start = past.length > 0 ? new Date(past[0].timestamp || Date.now()) : new Date();
+      const end = new Date();
+      const durationMs = end - start;
+      const mins = Math.floor(durationMs / 60000);
+      const seconds = Math.floor((durationMs % 60000) / 1000);
+
+      html += `<p><strong>Duration:</strong> ${mins} min ${seconds} sec</p><hr>`;
+
+      for (const msg of past) {
+        const roleLabel = msg.role === "user" ? "You" : "Always Here";
+
+     const cleanContent = msg.content
+    .replace(/^Always Here:\s*/g, '')    // remove only leading "Always Here:"
+    .replace(/\n/g, '<br>')          // convert line breaks to <br>
+    .replace(/\s{2,}/g, ' ');        // collapse extra spaces
+  
+  const formattedLabel = roleLabel === "Always Here" ? `<strong>Always Here:</strong>` : `<strong>You:</strong>`;
+  html += `<p>${formattedLabel} ${cleanContent}</p>`;
+}
+
+
+    } else {
+      html += "<p>No past conversations saved.</p>";
+    }
+
+    resultContainer.innerHTML = html;
+    resultContainer.focus();
+  });
+
+  backToChatBtn.addEventListener("click", () => {
+    hasStartedConversation = false;
+    clearBtn.style.display = "none";
+    backToChatBtn.style.display = "none";
+    historyRange.style.display = "none";
+
+    viewHistoryBtn.style.display = "inline-block";
+    inputContainer.style.display = "flex";
+
+    resultContainer.innerHTML = "";
+    for (const msg of chatHistory) addMessageToChat(msg.role, msg.content);
+    scrollToBottom();
+  });
+
+  document.getElementById("mode").addEventListener("change", () => {
+    clearChat();
+    currentMode = document.getElementById("mode").value;
+  });
+
+  // --- Navigation logic ---
+  let navSteps = [];
+  let currentStepIndex = 0;
+
+  async function fetchDirections(origin, destination) {
+    try {
+      const response = await fetch("/api/directions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ origin, destination }),
+      });
+
+      const data = await response.json();
+      if (data.error) {
+        const fallback = "Hmm, I couldn’t find directions with that info. Let’s double-check the addresses together. What’s your starting point?";
+        addMessageToChat("ai", fallback);
+        saveMessage("ai", fallback);
+        if (ttsToggle.checked) speakText(fallback);
+        return;
+    }
+
+
+      navSteps = data.steps || [];
+      currentStepIndex = 0;
+
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+      const linkMsg = `📍 <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`;
+      const linkDiv = document.createElement("div");
+      linkDiv.className = "ai-response";
+      linkDiv.style.fontSize = fontSize + "rem";
+      linkDiv.innerHTML = linkMsg;
+      resultContainer.appendChild(linkDiv);
+      scrollToBottom();
+      saveMessage("ai", `Open in Google Maps: ${mapsUrl}`);
+
+      if (ttsToggle.checked) speakText("I’ve added a link to your full route in Google Maps.");
+
+
+      document.getElementById("navigation-controls").style.display = "block";
+      speakCurrentStep();
+    } catch (err) {
+      console.error("Navigation fetch failed:", err);
+    }
+  }
+
+  let directionInterval = null;
+
+ function startRealTimeDirections() {
+  directionInterval = setInterval(() => {
+    if (currentStepIndex >= navSteps.length) {
+      clearInterval(directionInterval);
+      addMessageToChat("ai", "Navigation complete.");
+      document.getElementById("navigation-controls").style.display = "none";
+      return;
+    }
+
+    const step = navSteps[currentStepIndex];
+    const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
+    addMessageToChat("ai", `Step ${currentStepIndex + 1}: ${plainText}`);
+    if (ttsToggle.checked) speakText(plainText);
+    currentStepIndex++;
+  }, 10000); // Every 10 seconds
+}
+
+  function speakCurrentStep() {
+    if (currentStepIndex >= navSteps.length) {
+      addMessageToChat("ai", "Navigation complete.");
+      document.getElementById("navigation-controls").style.display = "none";
+      return;
+    }
+
+    const step = navSteps[currentStepIndex];
+    const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
+    addMessageToChat("ai", `Step ${currentStepIndex + 1}: ${plainText}`);
+    if (ttsToggle.checked) speakText(plainText);
+  }
+
+  document.getElementById("next-step-btn").addEventListener("click", () => {
+    currentStepIndex++;
+    startRealTimeDirections();
+   });
+
+  // --- Speech Recognition setup ---
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition;
+  let recognizing = false;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      recognizing = true;
+      micBtn.style.color = '#1c3faa';
+    };
+
+    recognition.onend = () => {
+      recognizing = false;
+      micBtn.style.color = '';
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      userInput.value = transcript;
+      sendMessage(transcript);  // Automatically send the transcribed text
+      userInput.focus();
+    };
+
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      recognizing = false;
+      micBtn.style.color = '';
+    };
+  } else {
+    micBtn.disabled = true;
+    micBtn.title = "Speech recognition not supported in this browser.";
+  }
+
+  micBtn.addEventListener("click", () => {
+    if (!recognition) return alert("Speech recognition not supported.");
+    recognizing ? recognition.stop() : recognition.start();
+  });
+
+  stopVoiceBtn.addEventListener("click", () => {
+    if (!ttsAudio.paused) {
+      ttsAudio.pause();
+      ttsAudio.currentTime = 0;
+    }
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+  });
+
+  ttsToggle.addEventListener("change", () => {
+    if (!ttsToggle.checked) {
+      if (!ttsAudio.paused) {
+        ttsAudio.pause();
+        ttsAudio.currentTime = 0;
+      }
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+      }
+    }
+  });
+
+  // === Font Controls ===
+  fontIncreaseBtn.addEventListener("click", () => {
+    fontSize = Math.min(fontSize + 0.1, 2.0);
+    updateFontSizes();
+  });
+  fontDecreaseBtn.addEventListener("click", () => {
+    fontSize = Math.max(fontSize - 0.1, 0.6);
+    updateFontSizes();
+  });
+  fontResetBtn.addEventListener("click", () => {
+    fontSize = 1.0;
+    updateFontSizes();
+  });
+
+  function updateFontSizes() {
+    document.querySelectorAll(".user-message, .ai-response").forEach(el => {
+      el.style.fontSize = fontSize + "rem";
+    });
+  }
+
+  // On page load:
+  archiveOldChatIfPresent();
+  loadChatHistory();
+});
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
