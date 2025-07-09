@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
   <style>
-    
     body { margin:0; padding:0; background:#f5f8ff; font-family:'Playfair Display',serif; color:#222; display:flex; flex-direction:column; align-items:center; min-height:100vh;}
     h1{color:#1c3faa;font-size:2.5rem;font-weight:700;text-align:center;margin:1.5rem 0 0.5rem;}
     p.subtitle{font-size:1rem;font-style:italic;color:#555;text-align:center;max-width:600px;margin-bottom:1.5rem;}
@@ -37,52 +36,6 @@
     #stop-voice-btn:hover{background:#162e8d;}
     footer{margin-top:3rem;text-align:center;font-size:0.85rem;color:#777;}
     .powered{margin-top:0.5rem;font-size:0.85rem;color:#999;text-align:center;}
-    @media (max-width: 600px) {
-  /* Make all buttons consistent size and style */
-  .controls-row button,
-  .small-btn,
-  #mic-btn,
-  #stop-voice-btn {
-    height: 38px !important;
-    padding: 0 12px !important;
-    font-size: 1rem !important;
-    border-radius: 8px !important;
-    background-color: #1c3faa !important;
-    color: white !important;
-    border: none !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* Bring mic button closer to TTS text */
-  .tts-mic-group {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.2rem !important; /* tighten spacing */
-  }
-
-  /* If TTS text uses a label or span */
-  .tts-mic-group span,
-  .tts-mic-group label {
-    margin-right: 0.3rem !important;
-  }
-
-  /* Make bottom row wrap and buttons flexible to prevent overflow */
-  .controls-row {
-    flex-wrap: wrap !important;
-    gap: 0.5rem !important;
-  }
-
-  .controls-row button,
-  .small-btn {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-  }
-
- }
-
-
   </style>
 </head>
 <body>
@@ -97,20 +50,18 @@
       <option value="wisdom">📖 Wisdom to Understand – Diagnoses & Coping</option>
       <option value="companion">💬 A Thoughtful Companion – Peer Support</option>
     </select>
-    <!-- Buttons for main chat page -->
-<div id="main-chat-buttons">
-  <button id="start-conversation-btn">Start Conversation</button>
-  <button id="view-past-conversations-btn">View Past Conversations</button>
-</div>
-
-<!-- Buttons for view past conversations page -->
-<div id="past-conversations-buttons" style="display:none;">
-  <button id="start-conversation-btn-alt">Start Conversation</button>
-  <button id="last-24-hours-btn">Last 24 Hours</button>
-  <button id="back-to-chat-btn">Back to Chat</button>
-  <button id="clear-history-btn">Clear History</button>
-</div>
-
+    <button class="submit-btn" id="start-conversation-btn">Start Conversation</button>
+    <div class="center-controls">
+      <button class="small-btn" id="view-history-btn">View Past Conversations</button>
+      <select class="history-select" id="history-range" style="display:none;">
+        <option value="24h">Last 24 hours</option>
+        <option value="1w">Last week</option>
+        <option value="2w">Last 2 weeks</option>
+        <option value="30d">Last 30 days</option>
+      </select>
+      <button class="small-btn" id="back-to-chat-btn" style="display:none;">Back to Chat</button>
+      <button class="small-btn" id="clear-history-btn" style="display:none;">Clear History</button>
+    </div>
   </div>
 
   <div class="result-container" id="result-container" role="region" aria-live="polite" aria-atomic="true" tabindex="0"></div>
@@ -888,29 +839,13 @@ async function startConversation() {
   // On page load:
   archiveOldChatIfPresent();
   loadChatHistory();
-
-  // === New Button Visibility Logic (Safe Addition) ===
-document.getElementById("main-chat-buttons").style.display = "block";
-document.getElementById("past-conversations-buttons").style.display = "none";
-
-startConversationBtn.addEventListener("click", () => {
-  document.getElementById("main-chat-buttons").style.display = "none";
-  document.getElementById("past-conversations-buttons").style.display = "none";
-});
-
-viewHistoryBtn.addEventListener("click", () => {
-  document.getElementById("main-chat-buttons").style.display = "none";
-  document.getElementById("past-conversations-buttons").style.display = "block";
-});
-
-backToChatBtn.addEventListener("click", () => {
-  document.getElementById("main-chat-buttons").style.display = "block";
-  document.getElementById("past-conversations-buttons").style.display = "none";
-
 });
 </script>
 </body>
 </html>
+
+
+
 
 
 
