@@ -351,7 +351,7 @@ def stream_response():
                     elif i == 1:
                         intro = "Another one is"
                     else:
-                        intro = "And finally"
+                        intro = "The next one is"
                     spoken_lines.append(f"{intro}: {f['name']}, located at {f['address']}. Phone number: {f['phone']}.")
 
                 spoken_text = "Here are some nearby places you can check: " + " ".join(spoken_lines)
