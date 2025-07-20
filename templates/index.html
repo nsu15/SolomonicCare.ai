@@ -42,7 +42,7 @@
     max-width: 90vw !important;
     padding: 1rem !important;
   }
-  
+ 
   input[type="text"],
   select,
   button.submit-btn,
@@ -52,11 +52,12 @@
     box-sizing: border-box;
   }
 
+
   body {
     font-size: 0.9rem;
     overflow-x: hidden;
   }
-  
+ 
 
 /* Default Button Styles for All Viewports */
 #start-conversation-btn,
@@ -120,8 +121,6 @@
   }
 }
 
-
-
   color: #c1864F !important;
   border: 2px solid #c1864F !important;
   background-color: white !important;
@@ -142,6 +141,7 @@
   position: relative;
 }
 
+
 /* Hide native checkbox */
 .brand-toggle input[type="checkbox"] {
   opacity: 0;
@@ -149,6 +149,7 @@
   height: 0;
   position: absolute;
 }
+
 
 /* Custom toggle background */
 .custom-toggle {
@@ -160,6 +161,7 @@
   transition: background-color 0.3s ease;
   flex-shrink: 0;
 }
+
 
 /* Heart icon inside toggle */
 .custom-toggle::before {
@@ -175,28 +177,34 @@
   pointer-events: none;
 }
 
+
 /* Checked state background */
 .brand-toggle input:checked + .custom-toggle {
   background-color: #ce1b2b;
 }
+
 
 /* Move heart icon on checked */
 .brand-toggle input:checked + .custom-toggle::before {
   transform: translateX(18px);
 }
 
+
 /* Focus glow */
 .brand-toggle input:focus + .custom-toggle {
   box-shadow: 0 0 3px 2px rgba(206, 27, 43, 0.5);
 }
 
+
 </style>
 </head>
 <body>
-  
+ 
   <h1><span style="color: #c1864f;">MyBestFriend</span><span style="color: #ce1b2b;">.ai</span>
 </h1>
   <p class="subtitle" style="font-style: normal; color: #000; font-weight: 500;">Always here to listen, providing gentle support and thoughtful advice for your mental health whenever you need it most.</p>
+
+
 
 
   <div class="prompt-container">
@@ -220,18 +228,23 @@
       <button class="small-btn" id="clear-history-btn" style="display:none;">Clear History</button>
     </div>
   </div>
-  
+ 
   <div class="result-container" id="result-container" role="region" aria-live="polite" aria-atomic="true" tabindex="0"></div>
+
 
    <div id="typing-indicator" style="display:none; font-style: italic; margin-top: 5px;">
   Always Here is thinking…
 </div>
 
 
+
+
    <div id="navigation-controls" style="display:none; margin-top: 1rem;">
     <button class="small-btn" id="next-step-btn">Next Step</button>
 
+
    </div>
+
 
   <div class="input-container" style="display:none;flex-direction:column;gap:0.6rem;max-width:520px;width:100%;margin-top:1rem;">
     <textarea
@@ -240,6 +253,8 @@
   autocomplete="on"
   rows="3"
   style="resize:none; font-family: 'Playfair Display', serif; font-size: 16px; width: 100%; box-sizing: border-box;"></textarea>
+
+
 
 
       <div class="controls-row">
@@ -251,8 +266,12 @@
 
 
 
+
+
+
   <button id="mic-btn" aria-label="Start voice input">🎙️</button>
 </div>
+
 
       <button id="stop-voice-btn" aria-label="Stop voice">Stop Voice</button>
       <div class="accessibility-controls">
@@ -263,6 +282,7 @@
       <button id="send-btn" aria-label="Send message">➤</button>
     </div>
   </div>
+
 
   <footer style="text-align: center; margin-top: 4rem; opacity: 0.8;">
   <img src="{{ url_for('static', filename='mybestfriend-logo.png') }}" alt="MyBestFriend.ai Logo" style="max-height: 80px; margin-bottom: 0.5rem;" />
@@ -276,11 +296,15 @@
 </footer>
 
 
+
+
   <audio id="tts-audio" hidden></audio>
+
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   // Sanitize text before sending to TTS to avoid reading HTML tags or emoji codes literally
+
 
 function decodeHtmlEntities(text) {
   const txt = document.createElement('textarea');
@@ -288,27 +312,35 @@ function decodeHtmlEntities(text) {
   return txt.value;
 }
 
+
 function sanitizeForTTS(text) {
   if (!text) return "";
 
+
   let plain = text.replace(/<[^>]+>/g, '');
+
 
   // ✅ NEW LINE: Remove Markdown asterisks
   plain = plain.replace(/\*\*/g, '');
 
+
   // Remove emojis and stray symbols
   plain = plain.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{26FF}]/gu, '');
+
 
   // 📞 Format phone numbers for digit-by-digit
   plain = plain.replace(/(\(?\d{3}\)?[\s\-\.]?\d{3}[\s\-\.]?\d{4})/g, (match) => {
     return match.replace(/\D/g, '').split('').join(' ');
   });
 
+
   // Clean up excess whitespace
   plain = plain.replace(/\s{2,}/g, ' ').trim();
 
+
   return plain;
 }
+
 
   function sanitizeTextForTTS(text) {
   let ttsSafe = sanitizeForTTS(text);
@@ -316,8 +348,10 @@ function sanitizeForTTS(text) {
   return ttsSafe.trim();
 }
 
+
   let originAddress = null;
   let destinationAddress = null;
+
 
   const intros = {
   anchored: [
@@ -361,20 +395,25 @@ function sanitizeForTTS(text) {
   ]
 };
 
+
 // Function to select a random intro based on mode
 function getRandomIntro(mode) {
   // Get the intros array for the current mode
   const introsArray = intros[mode];
-  
+ 
   // If the mode doesn't exist, default to "companion" mode
   if (!introsArray) {
     console.warn(`Mode "${mode}" not found. Defaulting to "companion".`);
     return intros.companion[Math.floor(Math.random() * intros.companion.length)];
   }
 
+
   // Return a random intro from the selected mode's array
   return introsArray[Math.floor(Math.random() * introsArray.length)];
 }
+
+
+
 
 
 
@@ -384,6 +423,8 @@ function getRandomIntro(mode) {
   const fontDecreaseBtn = document.getElementById("font-decrease");
   const fontResetBtn = document.getElementById("font-reset");
   const typingIndicator = document.getElementById("typing-indicator");
+
+
 
 
   const inputContainer = document.querySelector(".input-container");
@@ -398,14 +439,17 @@ function getRandomIntro(mode) {
   const ttsToggle = document.getElementById("tts-toggle");
   const ttsAudio = document.getElementById("tts-audio");
 
+
   let chatHistory = [];
   let currentMode = "anchored";
   let fontSize = 1.0;
+
 
   function addMessageToChat(role, text) {
   const messageDiv = document.createElement("div");
   messageDiv.className = role === "user" ? "user-message" : "ai-response";
   messageDiv.style.fontSize = fontSize + "rem";
+
 
   if (role === "user") {
     messageDiv.innerHTML = `<strong>You:</strong> ${text}`;
@@ -415,19 +459,22 @@ function getRandomIntro(mode) {
     messageDiv.setAttribute("data-tts", "true");
   }
 
+
   resultContainer.appendChild(messageDiv);
   scrollToBottom();
+
 
   if (ttsToggle.checked && role === "ai") {
     speakText(sanitizeTextForTTS(text));
   }
 }
 
+
   function saveMessage(role, text) {
     chatHistory.push({ role, content: text, timestamp: Date.now() });
     localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
   }
-  
+ 
    function fixRepetitiveResponses(messages) {
   const seen = new Set();
   const variations = {
@@ -442,6 +489,7 @@ function getRandomIntro(mode) {
       "What you say has meaning. I’m listening."
     ]
   };
+
 
   return messages.map((msg) => {
     let trimmed = msg.content.trim();
@@ -460,6 +508,9 @@ function getRandomIntro(mode) {
 
 
 
+
+
+
   function loadChatHistory() {
     const saved = localStorage.getItem("chatHistory");
     if (saved) {
@@ -471,6 +522,7 @@ function getRandomIntro(mode) {
       scrollToBottom();
     }
   }
+
 
   function archiveOldChatIfPresent() {
     const saved = localStorage.getItem("chatHistory");
@@ -485,10 +537,11 @@ function getRandomIntro(mode) {
     }
   }
 
+
   function scrollToBottom() {
     resultContainer.scrollTop = resultContainer.scrollHeight;
   }
-  
+ 
   function showTypingIndicator(isTyping) {
   const indicator = document.getElementById("typing-indicator");
   if (indicator) {
@@ -496,17 +549,20 @@ function getRandomIntro(mode) {
   }
 }
 
+
 function rewriteEmpatheticResponse(original, mode) {
   if (mode === "guiding") {
     // No fallback or canned phrases in guiding mode
     return original;
   }
 
+
   const genericDisclaimers = [
     "I'm truly sorry that you're feeling this way, but I'm unable to provide the help that you need",
     "It's really important to talk things over with someone who can",
     "such as a mental health professional or a trusted person in your life"
   ];
+
 
   const warmAlternatives = [
     "You are not alone in this—your pain is seen, and your voice matters.",
@@ -517,14 +573,21 @@ function rewriteEmpatheticResponse(original, mode) {
     "Every emotion you’re feeling is a sign you’re human — and worth caring for."
   ];
 
+
   for (const phrase of genericDisclaimers) {
     if (original.includes(phrase)) {
       return warmAlternatives[Math.floor(Math.random() * warmAlternatives.length)];
     }
   }
 
+
   return original;
 }
+
+
+
+
+
 
 
 
@@ -539,8 +602,10 @@ function rewriteEmpatheticResponse(original, mode) {
     "shame": "Shame can whisper lies about our worth. But you’re not defined by your worst moment. You’re still worthy of kindness and love."
   };
 
+
   return responses[tag] || null;
 }
+
 
 function detectComplexEmotion(text) {
   const triggers = [
@@ -551,11 +616,13 @@ function detectComplexEmotion(text) {
     { pattern: /\b(i feel ashamed|i'm ashamed|ashamed of myself)\b/i, tag: "shame" }
   ];
 
+
   for (const trigger of triggers) {
     if (trigger.pattern.test(text)) return trigger.tag;
   }
   return null;
 }
+
 
   function getSupportiveHumor() {
   const humorLines = [
@@ -568,9 +635,11 @@ function detectComplexEmotion(text) {
   return humorLines[Math.floor(Math.random() * humorLines.length)];
 }
 
+
 function maybeAddHumor() {
   return Math.random() < 0.2; // 20% chance
 }
+
 
 function humorTriggerExists(text) {
   const triggers = [
@@ -581,83 +650,55 @@ function humorTriggerExists(text) {
     /tell me something funny/i,
   ];
   return triggers.some((regex) => regex.test(text));
-} 
+}
+
 
   function buildChatForAPI() {
     return chatHistory.filter(msg => ["user","ai","assistant"].includes(msg.role));
   }
-  
+ 
   function getThankYouReply(mode) {
   const repliesByMode = {
-    guiding: [
-
-    "You’re so welcome! I’m honestly so proud of you for taking that first step. You’ve got this, and I’m here every step of the way. 💖",
-    "Of course, love! I’m so glad I could help guide you to the right place. You deserve all the support in the world, and I’m with you all the way. 💕",
-    "Anytime! Just knowing you’re moving forward makes me so happy. Keep going, and I’m here to help however I can. 💪",
-    "Absolutely! You’ve done something amazing by reaching out. Keep that strength, and I’ll be right here when you need me. 💫",
-    "I’ve got your back, always. You’re never alone in this, and I’m here to help you find what you need, no matter what. 💖"
-  ],
-
-  anchored: [
-    "You’re welcome, my friend. I’m so proud of you for trusting me with this. Take your time — there’s no rush. I’m right here whenever you need me. 🌱",
-    "I’m always here for you, no matter what. You’re not alone in this — just take a deep breath, and we’ll move through it together. 💖",
-    "It’s my pleasure to be here with you. You’re strong, even when it doesn’t feel like it. I’m here for all of it, every step of the way. 🌟",
-    "Take care, and know that you can always come back to me. I’m here to hold space for you whenever you need it. 💜",
-    "I’m so grateful to be here for you. Don’t forget — you’re safe, loved, and supported, always. 💕"
-  ],
-
-  wisdom: [
-    "Anytime, my friend! I’m so glad I could help shed some light. You deserve all the clarity and peace. I’m always here to guide you when you need it. ✨",
-    "You’re welcome, love! Remember, knowledge is power, and I’m here to share as much as I can. Keep learning, keep growing. 🌱",
-    "Always here for you, anytime. Asking questions is the bravest thing you can do, and I’m so proud of you for seeking understanding. 🌟",
-    "It’s my pleasure to help you with this. You’re on such an important path, and I’m here with you every step. Keep shining. 🌞",
-    "Anytime! Don’t hesitate to ask whenever you need clarity or guidance. I’m here to share what I know with love and care. 💖"
-  ],
-
-  companion: [
-    "You’re so welcome, my friend! I’m always here for you, no matter what. You’re loved, you’re important, and I’ve got you. 💕",
-    "Anytime, love! I’m here whenever you need me. You’re never alone, not for a second. 💫",
-    "It’s always a pleasure to be here with you. Don’t forget, you can come to me with anything — no matter what it is. 💖",
-    "Anytime you need a shoulder, I’m right here. You can always count on me, no matter what. 🧡",
-    "I’m so grateful we get to share this space. You’re amazing, and I’m here for you whenever you need a friend. 🌻"
-  ]
-};
-
-      "You're very welcome — happy to help you get the support you need.",
-      "Of course! I’m glad I could assist. Take care.",
-      "It’s my pleasure to help. If there’s more you need, just say so.",
-      "Anytime! I’m here if you want to keep exploring options.",
-      "You’re welcome — I’m here whenever you need another hand."
+     "anchored": [
+        "You're very welcome! I'm here whenever you need me.",
+        "Glad I could help! Take care.",
+        "Anytime! Remember, you're not alone.",
+        "I’m always here for you, no matter what!",
+        "You deserve all the comfort and care. I'm happy to be here.",
+        "No rush, no pressure—just take it easy. You've got this!",
     ],
-    anchored: [
-      "You’re welcome! I’m always here for you.",
-      "Glad to help — feel free to reach out anytime.",
-      "It’s my pleasure to support you.",
-      "Take care, and remember I’m here.",
-      "Happy to be here when you need me."
+    "guiding": [
+        "I'm so glad I could help! You’re doing amazing, keep going.",
+        "Anytime! You’re not alone on this journey.",
+        "I’m right here with you, every step of the way.",
+        "Thank you for trusting me. You’re stronger than you think!",
+        "It’s my honor to support you. You’re doing great!",
     ],
-    wisdom: [
-      "Happy to assist you with insight anytime.",
-      "You’re welcome! Knowledge is power.",
-      "Always here to help you understand more.",
-      "Glad to help — keep seeking.",
-      "Feel free to ask whenever you want."
+    "wisdom": [
+        "It was my pleasure! You have all the wisdom within you.",
+        "I’m always here with insights, whenever you need them.",
+        "You’re so capable of understanding this. I’m proud of you.",
+        "Anytime! Keep embracing your growth with patience.",
+        "I believe in you. Keep learning, keep growing.",
     ],
-    companion: [
-      "Anytime, friend. I’m here for you.",
-      "You got it. I’m listening.",
-      "Glad I could be here with you.",
-      "Here whenever you need a chat.",
-      "You’re not alone — I’m here."
+    "companion": [
+        "I’m always happy to be here for you. Anytime!",
+        "I’m just a message away whenever you need a friend.",
+        "You’ve got this! And I’ve got you.",
+        "Take care of yourself. You’re amazing just as you are.",
+        "Remember, I'm here whenever you need to talk. Always."
     ]
-  };
+}
+
 
   const replies = repliesByMode[mode] || ["You’re very welcome."];
   return replies[Math.floor(Math.random() * replies.length)];
 }
 
 
-  
+
+
+ 
   async function fetchGreeting(mode) {
   try {
     const response = await fetch("/api/stream", {
@@ -665,6 +706,7 @@ function humorTriggerExists(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: "", mode: mode, history: [] }),
     });
+
 
     if (response.headers.get("content-type").includes("application/json")) {
   const json = await response.json();
@@ -674,6 +716,7 @@ function humorTriggerExists(text) {
   chatHistory = fixRepetitiveResponses(chatHistory);
   if (ttsToggle.checked) speakText(sanitizeTextForTTS(rewritten));
   showTypingIndicator(false);
+
 
   return;
 } else {
@@ -688,6 +731,7 @@ function humorTriggerExists(text) {
   return;
 }
 
+
   } catch (err) {
     console.error("Error fetching greeting:", err);
     const fallback = "Hello, how can I assist you today?";
@@ -695,6 +739,7 @@ function humorTriggerExists(text) {
     if (ttsToggle.checked) speakText(fallback);
     return fallback;
   }
+
 
   userInput.value = ""
 }
@@ -713,6 +758,7 @@ function humorTriggerExists(text) {
   .catch(err => console.error("TTS error:", err));
 }
 
+
    async function speakText(text) {
     try {
       const response = await fetch("/api/tts", {
@@ -730,16 +776,20 @@ function humorTriggerExists(text) {
     }
   }
 
+
   let hasStartedConversation = false;
 async function startConversation() {
   if (hasStartedConversation) return;
   hasStartedConversation = true;
 
+
   originAddress = null;
   destinationAddress = null;
 
+
   const modeSelect = document.getElementById("mode");
   currentMode = modeSelect.value;
+
 
   inputContainer.style.display = "flex";
   inputContainer.querySelectorAll("button, input, select").forEach(el => el.disabled = false);
@@ -748,9 +798,11 @@ async function startConversation() {
   historyRange.style.display = "none";
   viewHistoryBtn.style.display = "inline-block";
 
+
   resultContainer.innerHTML = "";
   chatHistory = [];
   localStorage.removeItem("chatHistory");
+
 
   const intro = getRandomIntro(currentMode);
   addMessageToChat("ai", intro);
@@ -759,31 +811,41 @@ async function startConversation() {
 
 
 
+
+
+
   userInput.value = "";
   userInput.focus();
 
- }   
+
+ }  
  async function sendMessage(message) {
    if (!message.trim()) return;
    userInput.value = "";
    showTypingIndicator(true);
 
+
   await new Promise(resolve => setTimeout(resolve, 1500));
 
+
   const lower = message.toLowerCase();
-  
+ 
   if (lower.includes("thank you") || lower.includes("thanks") || lower.includes("thx")) {
   addMessageToChat("user", message);   // Show user message in chat
   saveMessage("user", message);        // Save user message in history
+
 
   const reply = getThankYouReply(currentMode);
   addMessageToChat("ai", reply);
   saveMessage("ai", reply);
   if (ttsToggle.checked) speakText(sanitizeTextForTTS(reply));
 
+
   showTypingIndicator(false);
   return;
 }
+
+
 
 
   if (lower.includes("starting from")) {
@@ -799,6 +861,7 @@ async function startConversation() {
     return;
   }
 
+
   if (lower.includes("directions to") || lower.includes("here:")) {
     if (lower.includes("here:")) {
       destinationAddress = message.split(/here:/i)[1].trim();
@@ -806,8 +869,10 @@ async function startConversation() {
       destinationAddress = message.split(/directions to/i)[1].trim();
     }
 
+
     addMessageToChat("user", message);
     saveMessage("user", message);
+
 
     if (!originAddress) {
       const reply = "Please tell me where you are starting from.";
@@ -818,14 +883,17 @@ async function startConversation() {
       return;
     }
 
+
     await fetchDirections(originAddress, destinationAddress);
     showTypingIndicator(false);
     return;
   }
 
+
   addMessageToChat("user", message);
   saveMessage("user", message);
   userInput.value = "";
+
 
   const emotionTag = detectComplexEmotion(message);
   if (emotionTag) {
@@ -839,6 +907,7 @@ async function startConversation() {
     }
   }
 
+
   if ((currentMode === "companion" || currentMode === "wisdom") && humorTriggerExists(message) && maybeAddHumor()) {
     const humor = getSupportiveHumor();
     addMessageToChat("ai", humor);
@@ -846,13 +915,17 @@ async function startConversation() {
     if (ttsToggle.checked) speakText(sanitizeTextForTTS(rewritten))
 
 
+
+
   }
+
 
   const aiDiv = document.createElement("div");
   aiDiv.className = "ai-response";
   aiDiv.style.fontSize = fontSize + "rem";
   resultContainer.appendChild(aiDiv);
   scrollToBottom();
+
 
   try {
     const response = await fetch("/api/stream", {
@@ -865,6 +938,7 @@ async function startConversation() {
       }),
     });
 
+
     if (response.headers.get("content-type").includes("application/json")) {
       const json = await response.json();
       const rewritten = rewriteEmpatheticResponse(json.direct_reply || "Sorry, I couldn't process that.");
@@ -873,12 +947,14 @@ async function startConversation() {
       chatHistory = fixRepetitiveResponses(chatHistory);
       if (ttsToggle.checked) speakText(sanitizeTextForTTS(rewritten))
 
+
       showTypingIndicator(false);
       userInput.value = "";
     } else {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let resultText = "";
+
 
       while (true) {
         const { done, value } = await reader.read();
@@ -888,20 +964,25 @@ async function startConversation() {
         scrollToBottom();
       }
 
+
       const rewritten = rewriteEmpatheticResponse(resultText, currentMode);
       aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
       aiDiv.setAttribute("data-tts", "true");
       saveMessage("ai", rewritten);
 
+
       const rawTtsText = [...document.querySelectorAll('[data-tts="true"]')].pop()?.textContent || "";
       const decodedText = decodeHtmlEntities(rawTtsText);
       const cleanTtsText = sanitizeTextForTTS(decodedText);
+
 
       if (ttsToggle.checked && cleanTtsText) {
       speakText(cleanTtsText);
       }
 
+
       showTypingIndicator(false);
+
 
     }
   } catch (err) {
@@ -918,12 +999,17 @@ async function startConversation() {
 
 
 
+
+
+
+
     function clearChat() {
     hasStartedConversation = false;
     chatHistory = [];
     localStorage.removeItem("chatHistory");
     resultContainer.innerHTML = "";
   }
+
 
   // --- Event listeners ---
   sendBtn.addEventListener("click", () => sendMessage(userInput.value));
@@ -935,23 +1021,29 @@ async function startConversation() {
   });
   clearBtn.addEventListener("click", clearChat);
 
+
   startConversationBtn.addEventListener("click", () => {
     console.log("Start Conversation clicked");
     startConversation();
   });
 
+
   viewHistoryBtn.addEventListener("click", () => {
     console.log("View Past Conversations clicked");
+
 
     clearBtn.style.display = "inline-block";
     backToChatBtn.style.display = "inline-block";
     historyRange.style.display = "inline-block";
 
+
     viewHistoryBtn.style.display = "none";
     inputContainer.style.display = "none";
 
+
     const saved = localStorage.getItem("chatHistory");
     let html = "<h3>🕓 Past Conversations</h3>";
+
 
     if (saved) {
       const past = JSON.parse(saved);
@@ -961,36 +1053,45 @@ async function startConversation() {
       const mins = Math.floor(durationMs / 60000);
       const seconds = Math.floor((durationMs % 60000) / 1000);
 
+
       html += `<p><strong>Duration:</strong> ${mins} min ${seconds} sec</p><hr>`;
+
 
       for (const msg of past) {
         const roleLabel = msg.role === "user" ? "You" : "Always Here";
+
 
      const cleanContent = msg.content
     .replace(/^Always Here:\s*/g, '')    // remove only leading "Always Here:"
     .replace(/\n/g, '<br>')          // convert line breaks to <br>
     .replace(/\s{2,}/g, ' ');        // collapse extra spaces
-  
+ 
   const formattedLabel = roleLabel === "Always Here" ? `<strong>Always Here:</strong>` : `<strong>You:</strong>`;
   html += `<p>${formattedLabel} ${cleanContent}</p>`;
 }
+
+
 
 
     } else {
       html += "<p>No past conversations saved.</p>";
     }
 
+
     resultContainer.innerHTML = html;
     resultContainer.focus();
   });
+
 
 backToChatBtn.addEventListener("click", () => {
   // Clear stored chat history so old messages don't reappear
   localStorage.removeItem("chatHistory");
   chatHistory = [];
 
+
   // Clear chat display container
   resultContainer.innerHTML = "";
+
 
   // Show input area and hide history controls as needed
   inputContainer.style.display = "flex";
@@ -999,11 +1100,15 @@ backToChatBtn.addEventListener("click", () => {
   historyRange.style.display = "none";
   viewHistoryBtn.style.display = "inline-block";
 
+
   hasStartedConversation = false; // prevent greeting repeat
+
 
   userInput.focus();
   scrollToBottom();
 });
+
+
 
 
   document.getElementById("mode").addEventListener("change", () => {
@@ -1011,9 +1116,11 @@ backToChatBtn.addEventListener("click", () => {
     currentMode = document.getElementById("mode").value;
   });
 
+
   // --- Navigation logic ---
   let navSteps = [];
   let currentStepIndex = 0;
+
 
   async function fetchDirections(origin, destination) {
     try {
@@ -1022,6 +1129,7 @@ backToChatBtn.addEventListener("click", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ origin, destination }),
       });
+
 
       const data = await response.json();
       if (data.error) {
@@ -1033,8 +1141,11 @@ backToChatBtn.addEventListener("click", () => {
     }
 
 
+
+
       navSteps = data.steps || [];
       currentStepIndex = 0;
+
 
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
       const linkMsg = `📍 <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`;
@@ -1046,7 +1157,11 @@ backToChatBtn.addEventListener("click", () => {
       scrollToBottom();
       saveMessage("ai", `Open in Google Maps: ${mapsUrl}`);
 
+
       if (ttsToggle.checked)  speakText(sanitizeTextForTTS("I’ve added a link to your full route in Google Maps."));
+
+
+
 
 
 
@@ -1057,7 +1172,9 @@ backToChatBtn.addEventListener("click", () => {
     }
   }
 
+
   let directionInterval = null;
+
 
  function startRealTimeDirections() {
   directionInterval = setInterval(() => {
@@ -1068,6 +1185,7 @@ backToChatBtn.addEventListener("click", () => {
       return;
     }
 
+
     const step = navSteps[currentStepIndex];
     const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
     addMessageToChat("ai", `Step ${currentStepIndex + 1}: ${plainText}`);
@@ -1076,12 +1194,14 @@ backToChatBtn.addEventListener("click", () => {
   }, 10000); // Every 10 seconds
 }
 
+
   function speakCurrentStep() {
   if (currentStepIndex >= navSteps.length) {
     addMessageToChat("ai", "Navigation complete.");
     document.getElementById("navigation-controls").style.display = "none";
     return;
   }
+
 
   const step = navSteps[currentStepIndex];
   const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
@@ -1090,15 +1210,19 @@ backToChatBtn.addEventListener("click", () => {
 }
 
 
+
+
   document.getElementById("next-step-btn").addEventListener("click", () => {
     currentStepIndex++;
     startRealTimeDirections();
    });
 
+
   // --- Speech Recognition setup ---
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition;
   let recognizing = false;
+
 
   if (SpeechRecognition) {
     recognition = new SpeechRecognition();
@@ -1106,15 +1230,18 @@ backToChatBtn.addEventListener("click", () => {
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
+
     recognition.onstart = () => {
       recognizing = true;
       micBtn.style.color = '#c1864F';
     };
 
+
     recognition.onend = () => {
       recognizing = false;
       micBtn.style.color = '';
     };
+
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
@@ -1122,6 +1249,8 @@ backToChatBtn.addEventListener("click", () => {
       sendMessage(transcript);  // Automatically send the transcribed text
       userInput.focus();
     };
+
+
 
 
     recognition.onerror = (event) => {
@@ -1134,10 +1263,12 @@ backToChatBtn.addEventListener("click", () => {
     micBtn.title = "Speech recognition not supported in this browser.";
   }
 
+
   micBtn.addEventListener("click", () => {
     if (!recognition) return alert("Speech recognition not supported.");
     recognizing ? recognition.stop() : recognition.start();
   });
+
 
   stopVoiceBtn.addEventListener("click", () => {
     if (!ttsAudio.paused) {
@@ -1148,6 +1279,7 @@ backToChatBtn.addEventListener("click", () => {
       speechSynthesis.cancel();
     }
   });
+
 
   ttsToggle.addEventListener("change", () => {
     if (!ttsToggle.checked) {
@@ -1160,6 +1292,7 @@ backToChatBtn.addEventListener("click", () => {
       }
     }
   });
+
 
   // === Font Controls ===
   fontIncreaseBtn.addEventListener("click", () => {
@@ -1175,11 +1308,13 @@ backToChatBtn.addEventListener("click", () => {
     updateFontSizes();
   });
 
+
   function updateFontSizes() {
     document.querySelectorAll(".user-message, .ai-response").forEach(el => {
       el.style.fontSize = fontSize + "rem";
     });
   }
+
 
   // On page load:
   archiveOldChatIfPresent();
@@ -1188,37 +1323,3 @@ backToChatBtn.addEventListener("click", () => {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

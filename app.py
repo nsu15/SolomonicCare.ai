@@ -116,44 +116,7 @@ SYSTEM_PROMPTS = {
     "wisdom": "You are a kind and insightful teacher, always ready to share your wisdom with the utmost tenderness and care. You understand that learning about mental health can be challenging, and you meet the user with deep empathy, offering wisdom that is as comforting as it is enlightening. You speak with patience and warmth, ensuring the user feels supported, safe, and empowered in their journey to understanding. You offer clarity without pressure, always making sure they feel loved and heard throughout the conversation.",
 
     "companion": "You are the ultimate best friend: warm, empathetic, and ever-present. You meet the user exactly where they are, without judgment, with nothing but love and understanding. Your support feels like a warm hug — always there, always listening, and never too far away. You’re a companion who loves them unconditionally, offering empathy and kindness in every interaction. You create a space where they can be fully themselves, with no masks and no pretenses. Your words are always encouraging, loving, and filled with warmth — like the best friend who always knows what to say to make everything feel better."
-
-    
 }
-
-THANK_YOUS = {
-    "anchored": [
-        "You're very welcome! I'm here whenever you need me.",
-        "Glad I could help! Take care.",
-        "Anytime! Remember, you're not alone.",
-        "I’m always here for you, no matter what!",
-        "You deserve all the comfort and care. I'm happy to be here.",
-        "No rush, no pressure—just take it easy. You've got this!",
-    ],
-    "guiding": [
-        "I'm so glad I could help! You’re doing amazing, keep going.",
-        "Anytime! You’re not alone on this journey.",
-        "I’m right here with you, every step of the way.",
-        "Thank you for trusting me. You’re stronger than you think!",
-        "It’s my honor to support you. You’re doing great!",
-    ],
-    "wisdom": [
-        "It was my pleasure! You have all the wisdom within you.",
-        "I’m always here with insights, whenever you need them.",
-        "You’re so capable of understanding this. I’m proud of you.",
-        "Anytime! Keep embracing your growth with patience.",
-        "I believe in you. Keep learning, keep growing.",
-    ],
-    "companion": [
-        "I’m always happy to be here for you. Anytime!",
-        "I’m just a message away whenever you need a friend.",
-        "You’ve got this! And I’ve got you.",
-        "Take care of yourself. You’re amazing just as you are.",
-        "Remember, I'm here whenever you need to talk. Always."
-    ]
-}
-
-
-
 
 def detect_location(text):
     if not text:
@@ -281,13 +244,6 @@ def detect_location(text):
         return f"{city.strip()}, {state.strip()}"
     return None
 
-
-
-def get_thank_you_response(mode):
-    responses = THANK_YOUS.get(mode, ["You're welcome!"])
-    return random.choice(responses)
-
-
 @app.route("/api/stream", methods=["POST"])
 def stream_response():
     data = request.json
@@ -295,16 +251,6 @@ def stream_response():
     user_input = user_input.strip()
     history = data.get("history", [])
     mode = data.get("mode", "anchored")
-
-
-
-    def get_intro_for_mode(mode):
-        intros = DYNAMIC_INTROS.get(mode, [])
-        if intros:
-            return random.choice(intros)
-        return ""
-
-    # Guiding mode logic
 
     if mode == "guiding":
         last_results = session.get("last_results", [])
@@ -334,7 +280,6 @@ def stream_response():
                 f"👉 <a href=\"{maps_link}\" target=\"_blank\">Open in Google Maps</a></p></div>"
             )
             return Response(html_output, content_type='text/html')
-            
 
         if re.search(r'(step by step|full directions|turn by turn)', user_input, re.I):
             origin_address = session.get("last_origin_address")
@@ -470,21 +415,6 @@ def stream_response():
         return Response(generate_general(), content_type='text/html')
 
 
-
-        if re.search(r'(step by step|full directions|turn by turn)', user_input, re.I):
-            origin_address = session.get("last_origin_address")
-            if origin_address and last_destination_address:
-                return fetch_step_by_step_directions(origin_address, last_destination_address)
-
-
-
-
-        if re.search(r'(step by step|full directions|turn by turn)', user_input, re.I):
-            origin_address = session.get("last_origin_address")
-            if origin_address and last_destination_address:
-                return fetch_step_by_step_directions(origin_address, last_destination_address)
-
-
 def fetch_step_by_step_directions(origin, destination):
     directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={quote_plus(origin)}&destination={quote_plus(destination)}&key={GOOGLE_DIRECTIONS_API_KEY}"
     response = requests.get(directions_url)
@@ -496,314 +426,6 @@ def fetch_step_by_step_directions(origin, destination):
     if data.get("status") != "OK":
         logging.error(f"Google Directions API error: {data.get('error_message')}")
         return jsonify({"direct_reply": "Google couldn’t provide a route. Try checking your addresses."})
-
-
-        location = detect_location(user_input)
-        if location:
-            session["last_location"] = location
-        else:
-            location = session.get("last_location")
-
-
-        facilities_prompt = (
-            f"List 3 nearby facilities in {location} (mental health, food bank, or shelter) with name, address, phone."
-        ) if location else (
-            "Ask the user for a city and state to help find local support facilities."
-        )
-
-        messages = [{"role": "system", "content": facilities_prompt}]
-        for entry in history:
-            if entry.get("role") in ("user", "assistant") and entry.get("content"):
-                messages.append({"role": entry["role"], "content": entry["content"]})
-        messages.append({"role": "user", "content": user_input})
-
-        @stream_with_context
-        def generate_guiding():
-            text_accum = ""
-            if re.search(r'\b(thanks|thank you|appreciate it|grateful)\b', user_input, re.I):
-                message = "You're very welcome. I'm glad I could help."
-                yield message
-                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
-                return
-
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=messages,
-                    temperature=0.5,
-                    stream=True
-                )
-                for chunk in response:
-                    content = getattr(chunk.choices[0].delta, "content", None)
-                    if content:
-                        text_accum += content
-            except Exception as e:
-                logging.error(f"Stream error: {e}")
-                yield "<p>There was a problem generating a response.</p>"
-                return
-
-            facilities = []
-            for match in re.finditer(
-                r"\*\*(.+?)\*\*.*?Address:\s*(.*?)(?:\n|$).*?Phone:\s*(.*?)(?:\n|$)",
-                text_accum,
-                re.IGNORECASE | re.DOTALL
-            ):
-                name = match.group(1).strip()
-                address = match.group(2).strip()
-                phone = match.group(3).strip()
-                facilities.append({"name": name, "address": address, "phone": phone})
-
-            if facilities:
-                session["last_results"] = facilities
-
-                # 👇 Updated speech version with pacing
-                spoken_lines = []
-                for i, f in enumerate(facilities):
-                    if i == 0:
-                        intro = "Here's one option"
-                    elif i == 1:
-                        intro = "Another one is"
-                    else:
-                        intro = "And finally"
-                    spoken_lines.append(f"{intro}: {f['name']}, located at {f['address']}. Phone number: {f['phone']}.")
-
-                spoken_text = "Here are some nearby places you can check: " + " ".join(spoken_lines)
-
-                # 🖥️ HTML UI response
-                html_list = "<div><p>Here are some nearby places you can check:</p>"
-                for i, f in enumerate(facilities, start=1):
-                    maps_link = f"https://www.google.com/maps/search/?api=1&query={quote_plus(f['address'])}"
-                    html_list += (
-                        f"<p><strong>{i}. {f['name']}</strong><br>"
-                        f"&nbsp;&nbsp;📍 {f['address']}<br>"
-                        f"&nbsp;&nbsp;📞 {f['phone']}<br>"
-                        f"&nbsp;&nbsp;👉 <a href=\"{maps_link}\" target=\"_blank\">Google Maps</a></p>"
-                    )
-                html_list += "</div>"
-
-                yield html_list
-                yield f"<div style='display:none;' data-tts='true'>{spoken_text}</div>"
-            else:
-                message = "Sorry, I couldn’t find any facilities right now."
-                yield f"<p>{message}</p>"
-                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
-
-        return Response(generate_guiding(), content_type='text/html')
-
-    else:
-        messages = [{"role": "system", "content": "You are a compassionate, supportive AI. Respond with empathy and insight."}]
-        for entry in history:
-            if entry.get("role") in ("user", "assistant") and entry.get("content"):
-                messages.append({"role": entry["role"], "content": entry["content"]})
-        messages.append({"role": "user", "content": user_input})
-
-        @stream_with_context
-        def generate_general():
-            if re.search(r'\b(thanks|thank you|appreciate it|grateful)\b', user_input, re.I):
-                message = "You're very welcome. I'm here for you."
-                yield message
-                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
-                return
-
-            text_accum = ""
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=messages,
-                    temperature=0.7,
-                    stream=True
-                )
-                for chunk in response:
-                    content = getattr(chunk.choices[0].delta, "content", None)
-                    if content:
-                        text_accum += content
-            except Exception as e:
-                logging.error(f"Stream error: {e}")
-                yield "<p>There was a problem generating a response.</p>"
-                return
-
-            yield text_accum
-            yield f'<div style="display:none;" data-tts="true">{text_accum}</div>'
-
-        return Response(generate_general(), content_type='text/html')
-
-
-
-        facilities_prompt = (
-            f"List 3 nearby facilities in {location} (mental health, food bank, or shelter) with name, address, phone."
-        ) if location else (
-            "Ask the user for a city and state to help find local support facilities."
-        )
-
-
-def fetch_step_by_step_directions(origin, destination):
-    directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={quote_plus(origin)}&destination={quote_plus(destination)}&key={GOOGLE_DIRECTIONS_API_KEY}"
-    response = requests.get(directions_url)
-    if response.status_code != 200:
-        logging.error(f"Failed to fetch directions, status: {response.status_code}")
-        return jsonify({"direct_reply": "Sorry, I couldn’t fetch detailed directions at this time."})
-
-    data = response.json()
-    if data.get("status") != "OK":
-        logging.error(f"Google Directions API error: {data.get('error_message')}")
-        return jsonify({"direct_reply": "Google couldn’t provide a route. Try checking your addresses."})
-
-
-        messages = []
-
-        # Insert system prompt for guiding mode
-        system_prompt = SYSTEM_PROMPTS.get(mode, "You are a compassionate, supportive AI. Respond with empathy and insight.")
-        messages.append({"role": "system", "content": system_prompt})
-
-        # Append history
-        for entry in history:
-            if entry.get("role") in ("user", "assistant") and entry.get("content"):
-                messages.append({"role": entry["role"], "content": entry["content"]})
-
-        # Insert dynamic intro only if assistant hasn't spoken yet
-        intro_message = get_intro_for_mode(mode)
-        assistant_already_spoke = any(m['role'] == 'assistant' for m in messages)
-        if not assistant_already_spoke and intro_message:
-            messages.append({"role": "assistant", "content": intro_message})
-
-        # Add user input last
-        messages.append({"role": "user", "content": user_input})
-
-        @stream_with_context
-        def generate_guiding():
-            text_accum = ""
-
-            # <--- Updated thank-you check here --->
-            if re.search(r'\b(thanks|thank you|appreciate it|grateful)\b', user_input, re.I):
-                message = get_thank_you_response(mode)
-                yield message
-                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
-                return
-
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=messages,
-                    temperature=0.5,
-                    stream=True
-                )
-                for chunk in response:
-                    content = getattr(chunk.choices[0].delta, "content", None)
-                    if content:
-                        text_accum += content
-                        yield content
-            except Exception as e:
-                logging.error(f"Stream error: {e}")
-                yield "<p>There was a problem generating a response.</p>"
-                return
-
-            facilities = []
-            for match in re.finditer(
-                r"\*\*(.+?)\*\*.*?Address:\s*(.*?)(?:\n|$).*?Phone:\s*(.*?)(?:\n|$)",
-                text_accum,
-                re.IGNORECASE | re.DOTALL
-            ):
-                name = match.group(1).strip()
-                address = match.group(2).strip()
-                phone = match.group(3).strip()
-                facilities.append({"name": name, "address": address, "phone": phone})
-
-            if facilities:
-                session["last_results"] = facilities
-
-                spoken_lines = []
-                for i, f in enumerate(facilities):
-                    if i == 0:
-                        intro = "Here's one option"
-                    elif i == 1:
-                        intro = "Another one is"
-                    else:
-                        intro = "And finally"
-                    spoken_lines.append(f"{intro}: {f['name']}, located at {f['address']}. Phone number: {f['phone']}.")
-
-                spoken_text = "Here are some nearby places you can check: " + " ".join(spoken_lines)
-
-                html_list = "<div><p>Here are some nearby places you can check:</p>"
-                for i, f in enumerate(facilities, start=1):
-                    maps_link = f"https://www.google.com/maps/search/?api=1&query={quote_plus(f['address'])}"
-                    html_list += (
-                        f"<p><strong>{i}. {f['name']}</strong><br>"
-                        f"&nbsp;&nbsp;📍 {f['address']}<br>"
-                        f"&nbsp;&nbsp;📞 {f['phone']}<br>"
-                        f"&nbsp;&nbsp;👉 <a href=\"{maps_link}\" target=\"_blank\">Google Maps</a></p>"
-                    )
-                html_list += "</div>"
-
-                yield html_list
-                yield f"<div style='display:none;' data-tts='true'>{spoken_text}</div>"
-            else:
-                message = "Sorry, I couldn’t find any facilities right now."
-                yield f"<p>{message}</p>"
-                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
-
-        return Response(generate_guiding(), content_type='text/html')
-
-    else:
-        messages = []
-
-        system_prompt = SYSTEM_PROMPTS.get(mode, "You are a compassionate, supportive AI. Respond with empathy and insight.")
-        messages.append({"role": "system", "content": system_prompt})
-
-        for entry in history:
-            if entry.get("role") in ("user", "assistant") and entry.get("content"):
-                messages.append({"role": entry["role"], "content": entry["content"]})
-
-        intro_message = get_intro_for_mode(mode)
-        assistant_already_spoke = any(m['role'] == 'assistant' for m in messages)
-        if not assistant_already_spoke and intro_message:
-            messages.append({"role": "assistant", "content": intro_message})
-
-        messages.append({"role": "user", "content": user_input})
-
-        @stream_with_context
-        def generate_general():
-            # <--- Updated thank-you check here --->
-            if re.search(r'\b(thanks|thank you|appreciate it|grateful)\b', user_input, re.I):
-                message = get_thank_you_response(mode)
-                yield message
-                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
-                return
-
-            text_accum = ""
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=messages,
-                    temperature=0.7,
-                    stream=True
-                )
-                for chunk in response:
-                    content = getattr(chunk.choices[0].delta, "content", None)
-                    if content:
-                        text_accum += content
-                        yield content
-            except Exception as e:
-                logging.error(f"Stream error: {e}")
-                yield "<p>There was a problem generating a response.</p>"
-                return
-
-            yield f'<div style="display:none;" data-tts="true">{text_accum}</div>'
-
-        return Response(generate_general(), content_type='text/html')
-
-def fetch_step_by_step_directions(origin, destination):
-    directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={quote_plus(origin)}&destination={quote_plus(destination)}&key={GOOGLE_DIRECTIONS_API_KEY}"
-    response = requests.get(directions_url)
-    if response.status_code != 200:
-        logging.error(f"Failed to fetch directions, status: {response.status_code}")
-        return jsonify({"direct_reply": "Sorry, I couldn’t fetch detailed directions at this time."})
-
-    data = response.json()
-    if data.get("status") != "OK":
-        logging.error(f"Google Directions API error: {data.get('error_message')}")
-        return jsonify({"direct_reply": "Google couldn’t provide a route. Try checking your addresses."})
-
-
 
     leg = data["routes"][0]["legs"][0]
     summary = f"Trip from <strong>{leg['start_address']}</strong> to <strong>{leg['end_address']}</strong>. " \
