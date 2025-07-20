@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     body { margin:0; padding:0; background:#f5f8ff; font-family:'Playfair Display',serif; color:#222; display:flex; flex-direction:column; align-items:center; min-height:100vh;}
-    h1{color:#1c3faa;font-size:2.5rem;font-weight:700;text-align:center;margin:1.5rem 0 0.5rem;}
+    h1{color:#c1864F;font-size:2.5rem;font-weight:700;text-align:center;margin:1.5rem 0 0.5rem;}
     p.subtitle{font-size:1rem;font-style:italic;color:#555;text-align:center;max-width:600px;margin-bottom:1.5rem;}
     .prompt-container,.result-container{max-width:520px;background:white;padding:2rem;border-radius:1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.1);width:100%;box-sizing:border-box;}
     .prompt-container{margin-bottom:1.5rem;}
@@ -16,31 +16,139 @@
     label[for="mode"]{margin-bottom:0.4rem;display:block;}
     #mode{width:100%;padding:0.5rem 1rem;font-size:0.9rem;}
     button{cursor:pointer;}
-    button.submit-btn{width:100%;background:#1c3faa;color:white;border:none;font-weight:600;padding:1rem;margin-top:0.5rem;}
-    button.submit-btn:hover{background:#162e8d;}
+    button.submit-btn{width:100%;background:#c1864F;color:white;border:none;font-weight:600;padding:1rem;margin-top:0.5rem;}
+    button.submit-btn:hover{background:#ce1b2b;}
     .center-controls{display:flex;justify-content:center;gap:1rem;margin-top:0.5rem;flex-wrap:wrap;}
-    .small-btn,.history-select{min-width:180px;font-size:0.85rem;border-radius:8px;font-weight:600;color:white;background:#1c3faa;border:none;padding:0.5rem 1rem;cursor:pointer;}
-    .small-btn:hover,.history-select:hover{background:#162e8d;}
+    .small-btn,.history-select{min-width:180px;font-size:0.85rem;border-radius:8px;font-weight:600;color:white;background:#c1864F;border:none;padding:0.5rem 1rem;cursor:pointer;}
+    .small-btn:hover,.history-select:hover{background:#ce1b2b;}
     .ai-response,.user-message{font-size:1rem;font-weight:500;margin-top:0.75rem;margin-bottom:0.75rem;color:#333;line-height:1.6;white-space:pre-wrap;text-indent:1.5em;}
     .controls-row{display:flex;align-items:center;max-width:520px;width:100%;margin-top:0.6rem;gap:0.5rem;justify-content:flex-start;}
     #user-input{margin-bottom:1rem;width:100%;padding:1rem;border-radius:10px;border:1px solid #ccc;font-size:1rem;}
     .tts-mic-group{display:flex;align-items:center;gap:0.4rem;}
     .accessibility-controls{display:flex;gap:0.4rem;margin-left:1rem;}
-    .accessibility-controls button{background:#1c3faa;color:white;border:none;padding:0.3rem 0.6rem;border-radius:6px;font-weight:600;font-size:0.9rem;min-width:34px;}
-    .accessibility-controls button:hover{background:#162e8d;}
-    #send-btn{width:42px;height:42px;background:#1c3faa;color:white;border:none;border-radius:50%;font-size:1.2rem;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;margin-left:auto;}
-    #send-btn:hover{background:#162e8d;}
+    .accessibility-controls button{background:#c1864F;color:white;border:none;padding:0.3rem 0.6rem;border-radius:6px;font-weight:600;font-size:0.9rem;min-width:34px;}
+    .accessibility-controls button:hover{background:#ce1b2b;}
+    #send-btn{width:42px;height:42px;background:#c1864F;color:white;border:none;border-radius:50%;font-size:1.2rem;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;margin-left:auto;}
+    #send-btn:hover{background:#ce1b2b;}
     #mic-btn{background:transparent;border:none;font-size:1.3rem;margin-left:0.8rem;flex-shrink:0;}
-    #mic-btn:hover{color:#162e8d;cursor:pointer;}
-    #stop-voice-btn{background:#1c3faa;color:white;border:none;padding:0.3rem 0.6rem;border-radius:6px;font-weight:600;font-size:0.9rem;min-width:70px;flex-shrink:0;margin-left:1rem;}
-    #stop-voice-btn:hover{background:#162e8d;}
+    #mic-btn:hover{color:#ce1b2b;cursor:pointer;}
+    #stop-voice-btn{background:#c1864F;color:white;border:none;padding:0.3rem 0.6rem;border-radius:6px;font-weight:600;font-size:0.9rem;min-width:70px;flex-shrink:0;margin-left:1rem;}
+    #stop-voice-btn:hover{background:#ce1b2b;}
     footer{margin-top:3rem;text-align:center;font-size:0.85rem;color:#777;}
     .powered{margin-top:0.5rem;font-size:0.85rem;color:#999;text-align:center;}
-  </style>
+    @media (max-width: 768px) {
+  .prompt-container,
+  .result-container {
+    max-width: 90vw !important;
+    padding: 1rem !important;
+  }
+  
+  input[type="text"],
+  select,
+  button.submit-btn,
+  .small-btn,
+  .history-select {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-size: 0.9rem;
+    overflow-x: hidden;
+  }
+  
+#start-conversation-btn,
+#view-history-btn {
+  color: #c1864F !important;
+  border: 2px solid #c1864F !important;
+  background-color: white !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important; /* disables blue highlight on mobile */
+}
+
+#start-conversation-btn:hover,
+#view-history-btn:hover,
+#start-conversation-btn:focus,
+#view-history-btn:focus,
+#start-conversation-btn:active,
+#view-history-btn:active {
+  color: #c1864F !important;
+  border: 2px solid #c1864F !important;
+  background-color: white !important;
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+.brand-toggle {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #ce1b2b;
+  font-size: 1rem;
+  position: relative;
+}
+
+/* Hide native checkbox */
+.brand-toggle input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* Custom toggle background */
+.custom-toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background-color: #ccc;
+  border-radius: 22px;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+/* Heart icon inside toggle */
+.custom-toggle::before {
+  content: "❤️";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  font-size: 18px;
+  line-height: 18px;
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+
+/* Checked state background */
+.brand-toggle input:checked + .custom-toggle {
+  background-color: #ce1b2b;
+}
+
+/* Move heart icon on checked */
+.brand-toggle input:checked + .custom-toggle::before {
+  transform: translateX(18px);
+}
+
+/* Focus glow */
+.brand-toggle input:focus + .custom-toggle {
+  box-shadow: 0 0 3px 2px rgba(206, 27, 43, 0.5);
+}
+
+</style>
 </head>
 <body>
-  <h1>MyBestFriend.ai</h1>
-  <p class="subtitle">A thoughtful AI life assistant platform offering compassionate support and clear guidance for your mental health journey.</p>
+  
+  <h1><span style="color: #c1864f;">MyBestFriend</span><span style="color: #ce1b2b;">.ai</span>
+</h1>
+  <p class="subtitle" style="font-style: normal; color: #000; font-weight: 500;">Always here to listen, providing gentle support and thoughtful advice for your mental health whenever you need it most.</p>
+
 
   <div class="prompt-container">
     <label for="mode">Choose your mode of support:</label>
@@ -63,11 +171,11 @@
       <button class="small-btn" id="clear-history-btn" style="display:none;">Clear History</button>
     </div>
   </div>
-
+  
   <div class="result-container" id="result-container" role="region" aria-live="polite" aria-atomic="true" tabindex="0"></div>
 
    <div id="typing-indicator" style="display:none; font-style: italic; margin-top: 5px;">
-  Always Here is typing…
+  Always Here is thinking…
 </div>
 
 
@@ -77,12 +185,26 @@
    </div>
 
   <div class="input-container" style="display:none;flex-direction:column;gap:0.6rem;max-width:520px;width:100%;margin-top:1rem;">
-    <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off" />
-    <div class="controls-row">
+    <textarea
+  id="user-input"
+  placeholder="You are amazing. Period."
+  autocomplete="on"
+  rows="3"
+  style="resize:none; font-family: 'Playfair Display', serif; font-size: 16px; width: 100%; box-sizing: border-box;"></textarea>
+
+
+      <div class="controls-row">
       <div class="tts-mic-group">
-        <input type="checkbox" id="tts-toggle" checked /><label for="tts-toggle" style="user-select:none;">Text To Speech</label>
-        <button id="mic-btn" aria-label="Start voice input">🎙️</button>
-      </div>
+  <label class="custom-toggle-label">
+  <input type="checkbox" id="tts-toggle" checked />
+  <span class="label-text">Text to Speech</span>
+</label>
+
+
+
+  <button id="mic-btn" aria-label="Start voice input">🎙️</button>
+</div>
+
       <button id="stop-voice-btn" aria-label="Stop voice">Stop Voice</button>
       <div class="accessibility-controls">
         <button id="font-decrease" aria-label="Decrease font size">A-</button>
@@ -93,15 +215,58 @@
     </div>
   </div>
 
-  <footer>
-    <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Use</a>
-    <div class="powered">Powered by MyBestFriend.ai — A customizable white-label mental health platform</div>
-  </footer>
+  <footer style="text-align: center; margin-top: 4rem; opacity: 0.8;">
+  <img src="{{ url_for('static', filename='mybestfriend-logo.png') }}" alt="MyBestFriend.ai Logo" style="max-height: 80px; margin-bottom: 0.5rem;" />
+  <div class="powered" style="font-weight: 600; color: #000; font-style: normal;">
+    Powered by mybestfriend.ai — A customizable white-label platform providing compassionate mental health guidance at scale.
+  </div>
+  <div style="margin-top: 0.5rem;">
+    <a href="/privacy" style="color: black; text-decoration: none;">Privacy Policy</a> |
+    <a href="/terms" style="color: black; text-decoration: none;">Terms of Use</a>
+  </div>
+</footer>
+
 
   <audio id="tts-audio" hidden></audio>
 
 <script>
 window.addEventListener("DOMContentLoaded", () => {
+  // Sanitize text before sending to TTS to avoid reading HTML tags or emoji codes literally
+
+function decodeHtmlEntities(text) {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = text;
+  return txt.value;
+}
+
+function sanitizeForTTS(text) {
+  if (!text) return "";
+
+  let plain = text.replace(/<[^>]+>/g, '');
+
+  // ✅ NEW LINE: Remove Markdown asterisks
+  plain = plain.replace(/\*\*/g, '');
+
+  // Remove emojis and stray symbols
+  plain = plain.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{26FF}]/gu, '');
+
+  // 📞 Format phone numbers for digit-by-digit
+  plain = plain.replace(/(\(?\d{3}\)?[\s\-\.]?\d{3}[\s\-\.]?\d{4})/g, (match) => {
+    return match.replace(/\D/g, '').split('').join(' ');
+  });
+
+  // Clean up excess whitespace
+  plain = plain.replace(/\s{2,}/g, ' ').trim();
+
+  return plain;
+}
+
+  function sanitizeTextForTTS(text) {
+  let ttsSafe = sanitizeForTTS(text);
+  ttsSafe = ttsSafe.replace(/Google Maps/gi, ""); // Remove "Google Maps" for TTS reading
+  return ttsSafe.trim();
+}
+
   let originAddress = null;
   let destinationAddress = null;
 
@@ -174,19 +339,25 @@ window.addEventListener("DOMContentLoaded", () => {
   let fontSize = 1.0;
 
   function addMessageToChat(role, text) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = role === "user" ? "user-message" : "ai-response";
-    messageDiv.style.fontSize = fontSize + "rem";
+  const messageDiv = document.createElement("div");
+  messageDiv.className = role === "user" ? "user-message" : "ai-response";
+  messageDiv.style.fontSize = fontSize + "rem";
 
-    if (role === "user") {
-      messageDiv.innerHTML = `<strong>You:</strong> ${text}`;
-    } else {
-      messageDiv.innerHTML = `<strong>Always Here:</strong> ${text.trim()}`;
-    }
-
-    resultContainer.appendChild(messageDiv);
-    scrollToBottom();
+  if (role === "user") {
+    messageDiv.innerHTML = `<strong>You:</strong> ${text}`;
+  } else {
+    messageDiv.innerHTML = `<strong>Always Here:</strong> ${text.trim()}`;
+    document.querySelectorAll("[data-tts='true']").forEach(el => el.removeAttribute("data-tts"));
+    messageDiv.setAttribute("data-tts", "true");
   }
+
+  resultContainer.appendChild(messageDiv);
+  scrollToBottom();
+
+  if (ttsToggle.checked && role === "ai") {
+    speakText(sanitizeTextForTTS(text));
+  }
+}
 
   function saveMessage(role, text) {
     chatHistory.push({ role, content: text, timestamp: Date.now() });
@@ -351,6 +522,43 @@ function humorTriggerExists(text) {
   function buildChatForAPI() {
     return chatHistory.filter(msg => ["user","ai","assistant"].includes(msg.role));
   }
+  
+  function getThankYouReply(mode) {
+  const repliesByMode = {
+    guiding: [
+      "You're very welcome — happy to help you get the support you need.",
+      "Of course! I’m glad I could assist. Take care.",
+      "It’s my pleasure to help. If there’s more you need, just say so.",
+      "Anytime! I’m here if you want to keep exploring options.",
+      "You’re welcome — I’m here whenever you need another hand."
+    ],
+    anchored: [
+      "You’re welcome! I’m always here for you.",
+      "Glad to help — feel free to reach out anytime.",
+      "It’s my pleasure to support you.",
+      "Take care, and remember I’m here.",
+      "Happy to be here when you need me."
+    ],
+    wisdom: [
+      "Happy to assist you with insight anytime.",
+      "You’re welcome! Knowledge is power.",
+      "Always here to help you understand more.",
+      "Glad to help — keep seeking.",
+      "Feel free to ask whenever you want."
+    ],
+    companion: [
+      "Anytime, friend. I’m here for you.",
+      "You got it. I’m listening.",
+      "Glad I could be here with you.",
+      "Here whenever you need a chat.",
+      "You’re not alone — I’m here."
+    ]
+  };
+
+  const replies = repliesByMode[mode] || ["You’re very welcome."];
+  return replies[Math.floor(Math.random() * replies.length)];
+}
+
 
   
   async function fetchGreeting(mode) {
@@ -367,7 +575,7 @@ function humorTriggerExists(text) {
   aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
   saveMessage("ai", rewritten);
   chatHistory = fixRepetitiveResponses(chatHistory);
-  if (ttsToggle.checked) speakText(rewritten);
+  if (ttsToggle.checked) speakText(sanitizeTextForTTS(rewritten));
   showTypingIndicator(false);
 
   return;
@@ -450,19 +658,36 @@ async function startConversation() {
   const intro = getRandomIntro(currentMode);
   addMessageToChat("ai", intro);
   saveMessage("ai", intro);
-  if (ttsToggle.checked) speakText(intro);
+  if (ttsToggle.checked)  speakText(sanitizeTextForTTS(intro));
+
+
 
   userInput.value = "";
   userInput.focus();
 
  }   
  async function sendMessage(message) {
-  if (!message.trim()) return;
-  showTypingIndicator(true);
+   if (!message.trim()) return;
+   userInput.value = "";
+   showTypingIndicator(true);
 
   await new Promise(resolve => setTimeout(resolve, 1500));
 
   const lower = message.toLowerCase();
+  
+  if (lower.includes("thank you") || lower.includes("thanks") || lower.includes("thx")) {
+  addMessageToChat("user", message);   // Show user message in chat
+  saveMessage("user", message);        // Save user message in history
+
+  const reply = getThankYouReply(currentMode);
+  addMessageToChat("ai", reply);
+  saveMessage("ai", reply);
+  if (ttsToggle.checked) speakText(sanitizeTextForTTS(reply));
+
+  showTypingIndicator(false);
+  return;
+}
+
 
   if (lower.includes("starting from")) {
     originAddress = message.split(/starting from/i)[1].trim();
@@ -521,7 +746,9 @@ async function startConversation() {
     const humor = getSupportiveHumor();
     addMessageToChat("ai", humor);
     saveMessage("ai", humor);
-    if (ttsToggle.checked) speakText(humor);
+    if (ttsToggle.checked) speakText(sanitizeTextForTTS(rewritten))
+
+
   }
 
   const aiDiv = document.createElement("div");
@@ -544,10 +771,11 @@ async function startConversation() {
     if (response.headers.get("content-type").includes("application/json")) {
       const json = await response.json();
       const rewritten = rewriteEmpatheticResponse(json.direct_reply || "Sorry, I couldn't process that.");
-      aiDiv.innerText = "Always Here: " + rewritten;
+      aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
       saveMessage("ai", rewritten);
       chatHistory = fixRepetitiveResponses(chatHistory);
-      if (ttsToggle.checked) speakText(rewritten);
+      if (ttsToggle.checked) speakText(sanitizeTextForTTS(rewritten))
+
       showTypingIndicator(false);
       userInput.value = "";
     } else {
@@ -565,9 +793,19 @@ async function startConversation() {
 
       const rewritten = rewriteEmpatheticResponse(resultText, currentMode);
       aiDiv.innerHTML = `<strong>Always Here:</strong> ${rewritten}`;
+      aiDiv.setAttribute("data-tts", "true");
       saveMessage("ai", rewritten);
-      if (ttsToggle.checked) speakText(rewritten);
+
+      const rawTtsText = [...document.querySelectorAll('[data-tts="true"]')].pop()?.textContent || "";
+      const decodedText = decodeHtmlEntities(rawTtsText);
+      const cleanTtsText = sanitizeTextForTTS(decodedText);
+
+      if (ttsToggle.checked && cleanTtsText) {
+      speakText(cleanTtsText);
+      }
+
       showTypingIndicator(false);
+
     }
   } catch (err) {
     console.error("Send message failed:", err);
@@ -649,19 +887,27 @@ async function startConversation() {
     resultContainer.focus();
   });
 
-  backToChatBtn.addEventListener("click", () => {
-    hasStartedConversation = false;
-    clearBtn.style.display = "none";
-    backToChatBtn.style.display = "none";
-    historyRange.style.display = "none";
+backToChatBtn.addEventListener("click", () => {
+  // Clear stored chat history so old messages don't reappear
+  localStorage.removeItem("chatHistory");
+  chatHistory = [];
 
-    viewHistoryBtn.style.display = "inline-block";
-    inputContainer.style.display = "flex";
+  // Clear chat display container
+  resultContainer.innerHTML = "";
 
-    resultContainer.innerHTML = "";
-    for (const msg of chatHistory) addMessageToChat(msg.role, msg.content);
-    scrollToBottom();
-  });
+  // Show input area and hide history controls as needed
+  inputContainer.style.display = "flex";
+  clearBtn.style.display = "none";
+  backToChatBtn.style.display = "none";
+  historyRange.style.display = "none";
+  viewHistoryBtn.style.display = "inline-block";
+
+  hasStartedConversation = false; // prevent greeting repeat
+
+  userInput.focus();
+  scrollToBottom();
+});
+
 
   document.getElementById("mode").addEventListener("change", () => {
     clearChat();
@@ -703,7 +949,8 @@ async function startConversation() {
       scrollToBottom();
       saveMessage("ai", `Open in Google Maps: ${mapsUrl}`);
 
-      if (ttsToggle.checked) speakText("I’ve added a link to your full route in Google Maps.");
+      if (ttsToggle.checked)  speakText(sanitizeTextForTTS("I’ve added a link to your full route in Google Maps."));
+
 
 
       document.getElementById("navigation-controls").style.display = "block";
@@ -727,23 +974,24 @@ async function startConversation() {
     const step = navSteps[currentStepIndex];
     const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
     addMessageToChat("ai", `Step ${currentStepIndex + 1}: ${plainText}`);
-    if (ttsToggle.checked) speakText(plainText);
+    if (ttsToggle.checked)  speakText(sanitizeTextForTTS(plainText));
     currentStepIndex++;
   }, 10000); // Every 10 seconds
 }
 
   function speakCurrentStep() {
-    if (currentStepIndex >= navSteps.length) {
-      addMessageToChat("ai", "Navigation complete.");
-      document.getElementById("navigation-controls").style.display = "none";
-      return;
-    }
-
-    const step = navSteps[currentStepIndex];
-    const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
-    addMessageToChat("ai", `Step ${currentStepIndex + 1}: ${plainText}`);
-    if (ttsToggle.checked) speakText(plainText);
+  if (currentStepIndex >= navSteps.length) {
+    addMessageToChat("ai", "Navigation complete.");
+    document.getElementById("navigation-controls").style.display = "none";
+    return;
   }
+
+  const step = navSteps[currentStepIndex];
+  const plainText = step.instruction.replace(/<[^>]+>/g, '').replace(/^\d+\.\s*/, '');
+  addMessageToChat("ai", `Step ${currentStepIndex + 1}: ${plainText}`);
+  if (ttsToggle.checked)  speakText(sanitizeTextForTTS(plainText));  // <-- use sanitizeForTTS here
+}
+
 
   document.getElementById("next-step-btn").addEventListener("click", () => {
     currentStepIndex++;
@@ -763,7 +1011,7 @@ async function startConversation() {
 
     recognition.onstart = () => {
       recognizing = true;
-      micBtn.style.color = '#1c3faa';
+      micBtn.style.color = '#c1864F';
     };
 
     recognition.onend = () => {
@@ -843,10 +1091,3 @@ async function startConversation() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-

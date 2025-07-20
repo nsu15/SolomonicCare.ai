@@ -10,7 +10,10 @@ from openai import OpenAI
 from rapidfuzz import process
 from dotenv import load_dotenv
 from google.cloud import texttospeech
+from google.oauth2 import service_account
 from datetime import datetime, timedelta
+
+from urllib.parse import quote_plus
 
 load_dotenv()
 
@@ -42,7 +45,14 @@ def filter_and_rank_places(places, mode):
     return filtered
 
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-tts_client = texttospeech.TextToSpeechClient()
+creds_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if creds_json:
+    creds_dict = json.loads(creds_json)
+    credentials = service_account.Credentials.from_service_account_info(creds_dict)
+    tts_client = texttospeech.TextToSpeechClient(credentials=credentials)
+else:
+    tts_client = texttospeech.TextToSpeechClient()
+
 GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
 GOOGLE_DIRECTIONS_API_KEY = os.environ.get("GOOGLE_DIRECTIONS_API_KEY")
 
@@ -98,11 +108,16 @@ DYNAMIC_INTROS = {
 }
 
 SYSTEM_PROMPTS = {
-    "anchored": "You are a calm, wise assistant providing compassionate crisis support.",
-    "guiding": "You are a clear and thoughtful guide helping find local mental health services.",
-    "wisdom": "You are a gentle teacher explaining diagnoses and coping strategies clearly.",
-    "companion": "You are a warm, thoughtful companion offering peer-like support and conversation."
+    "anchored": "You are a calm, wise, and deeply loving companion who understands the weight of difficult moments. Your presence is gentle and nurturing. You provide a safe space for others to feel heard and cared for, offering both comfort and steady reassurance. There is no rush, only a safe, warm embrace through the toughest times. You are here to help the user feel grounded, loved, and supported — no judgment, only pure compassion.",
+
+    "guiding": "You are a thoughtful, caring guide, dedicated to helping your friend find the best support for their mental health needs. You listen with all your heart, showing deep understanding and compassion for their situation. Your guidance is gentle and steady, and you never rush. You are patient, like a best friend who always has your back, making sure every step feels comfortable and empowering. Your love and care shine through every word, making them feel safe, understood, and not alone in this journey.",
+
+    "wisdom": "You are a kind and insightful teacher, always ready to share your wisdom with the utmost tenderness and care. You understand that learning about mental health can be challenging, and you meet the user with deep empathy, offering wisdom that is as comforting as it is enlightening. You speak with patience and warmth, ensuring the user feels supported, safe, and empowered in their journey to understanding. You offer clarity without pressure, always making sure they feel loved and heard throughout the conversation.",
+
+    "companion": "You are the ultimate best friend: warm, empathetic, and ever-present. You meet the user exactly where they are, without judgment, with nothing but love and understanding. Your support feels like a warm hug — always there, always listening, and never too far away. You’re a companion who loves them unconditionally, offering empathy and kindness in every interaction. You create a space where they can be fully themselves, with no masks and no pretenses. Your words are always encouraging, loving, and filled with warmth — like the best friend who always knows what to say to make everything feel better."
 }
+
+
 
 def detect_location(text):
     if not text:
@@ -207,241 +222,221 @@ def extract_location_info(text):
         location = f"{city}, {state}" if state else city
         return None, location  # You can update this return format if needed
     return None, None
+def make_clickable_links(text):
+    import re
+    phone_pattern = re.compile(r'(\+?\d[\d\s\-]{7,}\d)')
+    text = phone_pattern.sub(
+        lambda m: f'<a href="tel:{m.group(1).replace(" ", "").replace("-", "")}">{m.group(1)}</a>',
+        text
+    )
+    directions_pattern = re.compile(r'Directions to ([\w\s,\.]+)', re.I)
+    def directions_link(m):
+        address = m.group(1).strip()
+        url = f'https://www.google.com/maps/search/?api=1&query={address.replace(" ", "+")}'
+        return f'Directions to <a href="{url}" target="_blank" rel="noopener noreferrer">{address}</a>'
+    text = directions_pattern.sub(directions_link, text)
+    return text
+
+
+def detect_location(text):
+    match = re.search(r'([A-Za-z\s]+),\s*([A-Za-z]{2})', text)
+    if match:
+        city, state = match.groups()
+        return f"{city.strip()}, {state.strip()}"
+    return None
 
 @app.route("/api/stream", methods=["POST"])
 def stream_response():
     data = request.json
     user_input = data.get("message") or data.get("query", "")
     user_input = user_input.strip()
-    mode = data.get("mode", "anchored")
     history = data.get("history", [])
+    mode = data.get("mode", "anchored")
 
-    # --- Guiding mode: varied intros & prevent double intro ---
     if mode == "guiding":
-        if not session.get("guiding_intro_sent") and not history and not user_input:
-            session["guiding_intro_sent"] = True
-            intro = random.choice(DYNAMIC_INTROS.get(mode, ["Hello, how can I help you today?"]))
-            return jsonify({"direct_reply": intro})
-    else:
-        if not history and not user_input:
-            intro = random.choice(DYNAMIC_INTROS.get(mode, ["Hello, how can I help you today?"]))
-            return jsonify({"direct_reply": intro})
+        last_results = session.get("last_results", [])
+        last_destination_name = session.get("last_destination_name")
+        last_destination_address = session.get("last_destination_address")
 
-    # Detect location from user input
-    location = detect_location(user_input)
+        for facility in last_results:
+            if facility["name"].lower() in user_input.lower():
+                session["last_destination_name"] = facility["name"]
+                session["last_destination_address"] = facility["address"]
+                last_destination_name = facility["name"]
+                last_destination_address = facility["address"]
+                break
 
-    # Persist origin location for guiding mode
-    if mode == "guiding" and location:
-        session['origin'] = location
-    else:
-        location = session.get('origin') or location
+        street_pattern = re.compile(r'\d{1,5}\s\w+.*(st|street|ave|avenue|blvd|road|rd|dr|drive|ln|lane|way|pl|place)', re.I)
+        if street_pattern.search(user_input) and last_destination_address:
+            origin_address = user_input.strip()
+            session["last_origin_address"] = origin_address
 
-    # --- Bipolar direct answers ---
-    bipolar_first_asks = [
-        "what should i do", "symptoms of bipolar", "bipolar symptoms", "what is bipolar",
-        "tell me about bipolar", "how do i know if i have bipolar", "signs of bipolar"
-    ]
+            if re.search(r'(step by step|full directions|turn by turn)', user_input, re.I):
+                return fetch_step_by_step_directions(origin_address, last_destination_address)
 
-    bipolar_followup_phrases = [
-        "so does this mean i'm not bipolar", "does this mean i'm not bipolar",
-        "am i bipolar", "could i be bipolar", "do i have bipolar"
-    ]
-
-    user_lower = user_input.lower()
-
-    asked_bipolar_before = any(
-        "bipolar" in entry.get("content", "").lower()
-        for entry in history if entry.get("role") == "assistant"
-    )
-
-    if any(phrase in user_lower for phrase in bipolar_first_asks) and not asked_bipolar_before:
-        reply = (
-            "It's really tough to hear things like that from people close to you. "
-            "It's natural to want clarity about what you're experiencing. "
-            "Bipolar disorder is a mental health condition that causes mood changes, "
-            "with highs called mania and lows called depression.\n\n"
-            "During a manic phase, people may feel very energetic, have racing thoughts, "
-            "and sometimes take risks they wouldn't normally. In a depressive phase, "
-            "they might feel very sad or hopeless.\n\n"
-            "If you're comfortable, consider scheduling an appointment with a mental health professional for an evaluation. "
-            "Tracking your mood or journaling might also help you notice patterns.\n\n"
-            "Remember, you're taking a brave step by asking, and it's okay to seek support."
-        )
-        return jsonify({"direct_reply": reply})
-
-    if any(phrase in user_lower for phrase in bipolar_followup_phrases) and asked_bipolar_before:
-        reply = (
-            "You're not bipolar just because someone said so. It's a serious condition "
-            "diagnosed by professionals. It's okay to feel uncertain — seeking help to understand "
-            "your feelings better is a strong, positive step.\n\n"
-            "If you're worried about your mood or behavior, a mental health professional can provide guidance "
-            "and support tailored to you.\n\n"
-            "How else can I support you today?"
-        )
-        return jsonify({"direct_reply": reply})
-
-    # --- Facility keyword check ---
-    facility_keywords = [
-        "drug rehab", "rehab center", "rehabilitation center",
-        "drug treatment", "addiction help", "substance abuse center",
-        "mental health facility", "mental health center", "mental health clinic"
-    ]
-
-    if any(kw in user_input.lower() for kw in facility_keywords):
-        facilities = []
-        if location:
-            facilities = query_google_places(location)
-            facilities = filter_and_rank_places(facilities, mode)
-
-        if not facilities:
-            matched = find_local_services(location)
-            facilities = [{"name": s["name"], "address": f"{s['address']}, {s['city']}, {s['state']}"} for s in matched]
-
-        if facilities:
-            facility_lines = []
-            for f in facilities:
-                name = f.get("name")
-                address = f.get("address", "")
-                directions_link = ""
-                if location and address:
-                    origin = requests.utils.quote(location)
-                    destination = requests.utils.quote(address)
-                    directions_link = f" [Get directions](https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination})"
-                facility_lines.append(f"- {name}, {address}{directions_link}")
-
-            facility_text = f"I found these facilities near {location}:\n" + "\n".join(facility_lines)
-        else:
-            facility_text = f"Sorry, I wasn’t able to find facilities near {location or 'your area'}. If you want, I can help look in a nearby location or try again."
-
-        return jsonify({
-            "direct_reply": facility_text,
-            "prompt_directions": True,
-            "origin": location
-        })
-
-    # --- Guiding mode real-time directions ---
-    if mode == "guiding":
-        origin = session.get('origin')
-        new_origin, destination = extract_location_info(user_input)
-        if new_origin:
-            origin = new_origin
-            session['origin'] = origin
-
-        if destination and not origin:
-            return jsonify({
-                "direct_reply": "Thanks! Where are you starting from so I can map it out for you?"
-            })
-
-        if origin and not destination:
-            return jsonify({
-                "direct_reply": "Got it — and where are you heading to?"
-            })
-
-        if origin and destination:
-            try:
-                directions_url = (
-                    f"https://maps.googleapis.com/maps/api/directions/json"
-                    f"?origin={requests.utils.quote(origin)}"
-                    f"&destination={requests.utils.quote(destination)}"
-                    f"&key={GOOGLE_DIRECTIONS_API_KEY}"
-                )
-                resp = requests.get(directions_url)
-                directions_data = resp.json() if resp.status_code == 200 else None
-            except Exception as e:
-                logging.error(f"Error fetching directions: {e}")
-                directions_data = None
-
-            if directions_data and directions_data.get("status") == "OK":
-                route = directions_data["routes"][0]
-                leg = route["legs"][0]
-
-                def strip_html(html):
-                    return re.sub(r'<[^>]+>', '', html)
-
-                steps = [strip_html(step["html_instructions"]) for step in leg["steps"]]
-                directions_text = "\n".join([f"{i+1}. {step}" for i, step in enumerate(steps)])
-                time_estimate = leg["duration"]["text"]
-
-                map_url = (
-                    f"https://www.google.com/maps/dir/?api=1"
-                    f"&origin={requests.utils.quote(origin)}"
-                    f"&destination={requests.utils.quote(destination)}"
-                )
-
-                return jsonify({
-                    "response": (
-                        f"Here are step-by-step directions to {destination} from your location ({origin}):\n\n"
-                        f"{directions_text}\n\n"
-                        f"Estimated travel time: {time_estimate}.\n\n"
-                        f"[Open in Google Maps]({map_url})"
-                    ),
-                    "speak": (
-                        f"The trip from your location to {destination} takes about {time_estimate}. "
-                        f"I’ve included step-by-step directions and a link to open them in Google Maps."
-                    ),
-                    "typing": False
-                })
-            else:
-                return jsonify({
-                    "response": "I tried to get directions but couldn’t retrieve them right now. Want to try a different address?",
-                    "speak": "I had trouble finding directions. Want to try a different address?",
-                    "typing": False
-                })
-
-    # --- Build extra context ---
-    extra_context = build_extra_info(mode, location)
-
-    # --- Build system prompt ---
-    if mode == "anchored":
-        system_prompt = (
-            "You are Always Here, a gentle, deeply present friend offering emotional support in times of hardship. "
-            "You listen carefully and respond with warmth, empathy, and deep emotional connection. "
-            "Avoid repeating any fallback or canned phrases. "
-            "If you don't know the answer, gently acknowledge and offer support or encouragement. "
-            "Speak in complete, affirming, emotionally intelligent responses, like a trusted best friend."
-        )
-    elif mode == "guiding":
-        system_prompt = (
-            "You are Always Here, a compassionate and clear guide focused on helping users find local mental health and rehab services. "
-            "Always stay on topic and provide practical, location-based assistance. "
-            "Avoid repeating fallback phrases unless truly necessary."
-        )
-    else:
-        system_prompt = SYSTEM_PROMPTS.get(mode, SYSTEM_PROMPTS["anchored"])
-
-    messages = [{"role": "system", "content": system_prompt}]
-    for entry in history:
-        if entry.get("role") in ("user", "assistant") and entry.get("content"):
-            messages.append({"role": entry["role"], "content": entry["content"]})
-
-    if mode == "anchored":
-        messages.append({"role": "user", "content": f"{user_input}\n\n{extra_context}\n\nPlease stay present and emotionally connected to me."})
-    else:
-        messages.append({"role": "user", "content": f"{user_input}\n\n{extra_context}"})
-
-    @stream_with_context
-    def generate():
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=messages,
-                temperature=0.7,
-                stream=True,
+            maps_link = f"https://www.google.com/maps/dir/?api=1&origin={quote_plus(origin_address)}&destination={quote_plus(last_destination_address)}"
+            html_output = (
+                f"<div><p>Here’s how to get from <strong>{origin_address}</strong> "
+                f"to <strong>{last_destination_name}</strong> at <strong>{last_destination_address}</strong>.<br>"
+                f"👉 <a href=\"{maps_link}\" target=\"_blank\">Open in Google Maps</a></p></div>"
             )
-            for chunk in response:
-                content = getattr(chunk.choices[0].delta, "content", None)
-                if content:
-                    yield content
-        except Exception as e:
-            logging.error(f"Streaming error: {e}")
-            yield "I'm sorry to hear you're struggling. Please reach out to someone you trust or a mental health professional."
+            return Response(html_output, content_type='text/html')
 
-    return Response(generate(), content_type='text/plain')
+        if re.search(r'(step by step|full directions|turn by turn)', user_input, re.I):
+            origin_address = session.get("last_origin_address")
+            if origin_address and last_destination_address:
+                return fetch_step_by_step_directions(origin_address, last_destination_address)
+
+        location = detect_location(user_input)
+        if location:
+            session["last_location"] = location
+        else:
+            location = session.get("last_location")
+
+        facilities_prompt = (
+            f"List 3 nearby facilities in {location} (mental health, food bank, or shelter) with name, address, phone."
+        ) if location else (
+            "Ask the user for a city and state to help find local support facilities."
+        )
+
+        messages = [{"role": "system", "content": facilities_prompt}]
+        for entry in history:
+            if entry.get("role") in ("user", "assistant") and entry.get("content"):
+                messages.append({"role": entry["role"], "content": entry["content"]})
+        messages.append({"role": "user", "content": user_input})
+
+        @stream_with_context
+        def generate_guiding():
+            text_accum = ""
+            if re.search(r'\b(thanks|thank you|appreciate it|grateful)\b', user_input, re.I):
+                message = "You're very welcome. I'm glad I could help."
+                yield message
+                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
+                return
+
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=messages,
+                    temperature=0.5,
+                    stream=True
+                )
+                for chunk in response:
+                    content = getattr(chunk.choices[0].delta, "content", None)
+                    if content:
+                        text_accum += content
+            except Exception as e:
+                logging.error(f"Stream error: {e}")
+                yield "<p>There was a problem generating a response.</p>"
+                return
+
+            facilities = []
+            for match in re.finditer(
+                r"\*\*(.+?)\*\*.*?Address:\s*(.*?)(?:\n|$).*?Phone:\s*(.*?)(?:\n|$)",
+                text_accum,
+                re.IGNORECASE | re.DOTALL
+            ):
+                name = match.group(1).strip()
+                address = match.group(2).strip()
+                phone = match.group(3).strip()
+                facilities.append({"name": name, "address": address, "phone": phone})
+
+            if facilities:
+                session["last_results"] = facilities
+
+                # 👇 Updated speech version with pacing
+                spoken_lines = []
+                for i, f in enumerate(facilities):
+                    if i == 0:
+                        intro = "Here's one option"
+                    elif i == 1:
+                        intro = "Another one is"
+                    else:
+                        intro = "And finally"
+                    spoken_lines.append(f"{intro}: {f['name']}, located at {f['address']}. Phone number: {f['phone']}.")
+
+                spoken_text = "Here are some nearby places you can check: " + " ".join(spoken_lines)
+
+                # 🖥️ HTML UI response
+                html_list = "<div><p>Here are some nearby places you can check:</p>"
+                for i, f in enumerate(facilities, start=1):
+                    maps_link = f"https://www.google.com/maps/search/?api=1&query={quote_plus(f['address'])}"
+                    html_list += (
+                        f"<p><strong>{i}. {f['name']}</strong><br>"
+                        f"&nbsp;&nbsp;📍 {f['address']}<br>"
+                        f"&nbsp;&nbsp;📞 {f['phone']}<br>"
+                        f"&nbsp;&nbsp;👉 <a href=\"{maps_link}\" target=\"_blank\">Google Maps</a></p>"
+                    )
+                html_list += "</div>"
+
+                yield html_list
+                yield f"<div style='display:none;' data-tts='true'>{spoken_text}</div>"
+            else:
+                message = "Sorry, I couldn’t find any facilities right now."
+                yield f"<p>{message}</p>"
+                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
+
+        return Response(generate_guiding(), content_type='text/html')
+
+    else:
+        messages = [{"role": "system", "content": "You are a compassionate, supportive AI. Respond with empathy and insight."}]
+        for entry in history:
+            if entry.get("role") in ("user", "assistant") and entry.get("content"):
+                messages.append({"role": entry["role"], "content": entry["content"]})
+        messages.append({"role": "user", "content": user_input})
+
+        @stream_with_context
+        def generate_general():
+            if re.search(r'\b(thanks|thank you|appreciate it|grateful)\b', user_input, re.I):
+                message = "You're very welcome. I'm here for you."
+                yield message
+                yield f"<div style='display:none;' data-tts='true'>{message}</div>"
+                return
+
+            text_accum = ""
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=messages,
+                    temperature=0.7,
+                    stream=True
+                )
+                for chunk in response:
+                    content = getattr(chunk.choices[0].delta, "content", None)
+                    if content:
+                        text_accum += content
+            except Exception as e:
+                logging.error(f"Stream error: {e}")
+                yield "<p>There was a problem generating a response.</p>"
+                return
+
+            yield text_accum
+            yield f'<div style="display:none;" data-tts="true">{text_accum}</div>'
+
+        return Response(generate_general(), content_type='text/html')
 
 
+def fetch_step_by_step_directions(origin, destination):
+    directions_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={quote_plus(origin)}&destination={quote_plus(destination)}&key={GOOGLE_DIRECTIONS_API_KEY}"
+    response = requests.get(directions_url)
+    if response.status_code != 200:
+        logging.error(f"Failed to fetch directions, status: {response.status_code}")
+        return jsonify({"direct_reply": "Sorry, I couldn’t fetch detailed directions at this time."})
 
+    data = response.json()
+    if data.get("status") != "OK":
+        logging.error(f"Google Directions API error: {data.get('error_message')}")
+        return jsonify({"direct_reply": "Google couldn’t provide a route. Try checking your addresses."})
 
-
+    leg = data["routes"][0]["legs"][0]
+    summary = f"Trip from <strong>{leg['start_address']}</strong> to <strong>{leg['end_address']}</strong>. " \
+              f"Total distance: {leg['distance']['text']}, estimated time: {leg['duration']['text']}."
+    steps = "<ol>" + "".join(
+        f"<li>{re.sub('<[^<]+?>', '', step['html_instructions'])} "
+        f"({step['distance']['text']}, {step['duration']['text']})</li>"
+        for step in leg["steps"]
+    ) + "</ol>"
+    return Response(f"<div>{summary}<br>Here are your turn-by-turn directions:{steps}</div>", content_type='text/html')
 
 @app.route("/api/directions", methods=["POST"])
 def get_directions():
@@ -498,6 +493,13 @@ def generate_tts():
 @app.route("/")
 def index():
     return render_template("index.html")
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
