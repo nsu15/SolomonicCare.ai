@@ -57,6 +57,26 @@
     overflow-x: hidden;
   }
   
+
+/* Default Button Styles for All Viewports */
+#start-conversation-btn,
+#view-history-btn {
+  color: white;  /* Text color is white */
+  border: 2px solid #c1864F;  /* Brown border */
+  background-color: #c1864F;  /* Brown background */
+  font-weight: 600;
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent; /* Disables blue highlight on mobile */
+  padding: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
+
+/* Desktop view: Hover effect with brown color (unchanged) */
+
 #start-conversation-btn,
 #view-history-btn {
   color: #c1864F !important;
@@ -68,12 +88,40 @@
   -webkit-tap-highlight-color: transparent !important; /* disables blue highlight on mobile */
 }
 
+
 #start-conversation-btn:hover,
 #view-history-btn:hover,
 #start-conversation-btn:focus,
 #view-history-btn:focus,
 #start-conversation-btn:active,
 #view-history-btn:active {
+
+  color: white;  /* Keep text white on hover */
+  border: 2px solid #c1864F;  /* Brown border on hover */
+  background-color: #c1864F;  /* Brown background on hover */
+  outline: none;
+  box-shadow: none;
+  text-decoration: none;
+}
+
+/* Mobile view: Only static red background and no hover effect */
+@media only screen and (max-width: 768px) {
+  #start-conversation-btn,
+  #view-history-btn {
+    color: white;  /* Text color remains white */
+    border: 2px solid #c1864F;  /* Brown border */
+    background-color: #c1864F;  /* Static brown background */
+  }
+
+  /* On click (active) - Red background */
+  #start-conversation-btn:active,
+  #view-history-btn:active {
+    background-color: #ce1b2b;  /* Red background when button is clicked */
+  }
+}
+
+
+
   color: #c1864F !important;
   border: 2px solid #c1864F !important;
   background-color: white !important;
@@ -81,6 +129,7 @@
   box-shadow: none !important;
   text-decoration: none !important;
 }
+
 .brand-toggle {
   display: inline-flex;
   align-items: center;
@@ -272,44 +321,59 @@ function sanitizeForTTS(text) {
 
   const intros = {
   anchored: [
-    "Hey, I’m so glad you came. You’re safe here. Let’s slow things down together.",
-    "Welcome back, friend. I’m here with you — no rush, no judgment.",
-    "It’s okay to feel how you feel. Let’s breathe through this, together."
+    "I’m right here with you, friend. Let’s take things slow and breathe through it together. You’re safe.",
+    "It’s okay to feel whatever you’re feeling. Let’s just stay grounded and take this one moment at a time.",
+    "You’re not alone. I’m here with you. Let’s hold onto each other and get through this together.",
+    "Everything will be okay. I’m here with you—no rush, no pressure, just presence and peace.",
+    "Sometimes, all we need is a moment of calm. I’m right here, no judgment, just understanding.",
+    "You’ve got this, and I’m right here with you, every step of the way. Together, we’ll stay anchored.",
+    "It’s okay to pause, to breathe. Let’s stay grounded in this moment, together."
   ],
   guiding: [
-    "Hi there! I can help you find caring mental health support nearby. What city or zip code are you starting from?",
-    "Looking for support? I’m here to help you find the right place. Where should we begin?",
-    "Let’s find some help that fits you best. Just tell me your location to start."
+    "Hey love, I’m here to help. Where are we starting from? Let’s take that first step together.",
+    "I’m right by your side, ready to guide you to the right place. What’s the next move?",
+    "Let’s find your way together, step by step. Just tell me where you’re starting, and we’ll figure it out.",
+    "Whatever you need, I’m here to guide you. Just share where you are, and we’ll go from there.",
+    "Ready to help you find the best path forward. Where do you need to start? I’ve got you.",
+    "No need to worry—I’ll help you find the right direction. Just let me know where you are, and we’ll go from there.",
+    "You’re doing great. I’ll be right here, guiding you through every step. Where do we begin?"
   ],
   wisdom: [
-    "Hello, I’m here to help you understand what you’re feeling — and what might help. You’re not alone in this.",
-    "Sometimes knowing more can ease the weight. Let’s explore this together.",
-    "I’m here to share some insights that might brighten your path a little."
+    "Sometimes, we just need a little guidance to understand what’s going on. Let’s explore that together.",
+    "Hey, I’m here to help you make sense of things. Let’s look at this from a new perspective, together.",
+    "You’re not alone in this. I’m here to offer some wisdom to help you feel a little lighter. Let’s talk.",
+    "Whatever’s on your mind, I’m here to help you find clarity. Let’s take a moment to dive into it together.",
+    "I know things can feel heavy sometimes, but understanding can bring relief. Let me help you with that.",
+    "Sometimes knowing more can make all the difference. Let’s explore and see how we can shift your perspective.",
+    "I’m here to share some insights that might help ease the weight. Together, we’ll make sense of this."
   ],
   companion: [
-    "Hey friend. You don’t have to pretend here. Talk to me like someone who truly gets it. I’m all ears.",
-    "I’m right here with you — no masks, no filters. Just honest talk.",
-    "Sometimes just having someone listen can make all the difference. I’m listening."
+    "Hey love, I’m right here. No judgment, no rush—just you and me. Tell me what’s on your heart.",
+    "I’ve got your back, always. No matter what you're going through, I’m here to listen.",
+    "Whenever you need to talk, I’m here. You don’t have to go through this alone, okay?",
+    "Take your time, friend. There’s no rush. We’ll go through this together, one step at a time.",
+    "I’m so glad you're here. Don’t worry, you’re not alone. I’m right here with you, every step of the way.",
+    "You’re safe here. Whatever you need to say, I’m here to listen. Take a deep breath, we’ve got this.",
+    "Hey, I see you. I’m here, and I’m not going anywhere. You’re not alone in this, okay?",
+    "I know it’s hard sometimes, but you’re so strong. I’m here for you—let’s talk through it, together.",
+    "Whatever it is you’re feeling, it’s okay. Let’s take a moment together. I’m right here, listening.",
+    "You’re not alone, my friend. No matter how tough things get, I’m here to hold space for you. You’ve got this."
   ]
 };
 
-  function getRandomIntro(mode) {
-  const guidingIntros = [
-    "Hey friend 😊 Need help finding support nearby?",
-    "Let’s get you connected to the right place. Where are you starting from?",
-    "I’m right here with you. Want to tell me where you are so I can help you get somewhere safe?",
-    "Happy to help you navigate this. Just tell me where you're starting from 💬",
-    "Wherever you're starting from, I’ll walk with you from there. What's the address or cross street?"
-  ];
+// Function to select a random intro based on mode
+function getRandomIntro(mode) {
+  // Get the intros array for the current mode
+  const introsArray = intros[mode];
+  
+  // If the mode doesn't exist, default to "companion" mode
+  if (!introsArray) {
+    console.warn(`Mode "${mode}" not found. Defaulting to "companion".`);
+    return intros.companion[Math.floor(Math.random() * intros.companion.length)];
+  }
 
-  const defaultIntros = [
-    "Hey there! How can I support you today?",
-    "I’m here for you. What’s on your mind?",
-    "Let’s take this one step at a time, together.",
-  ];
-
-  if (mode === "guiding") return guidingIntros[Math.floor(Math.random() * guidingIntros.length)];
-  return defaultIntros[Math.floor(Math.random() * defaultIntros.length)];
+  // Return a random intro from the selected mode's array
+  return introsArray[Math.floor(Math.random() * introsArray.length)];
 }
 
 
@@ -526,6 +590,39 @@ function humorTriggerExists(text) {
   function getThankYouReply(mode) {
   const repliesByMode = {
     guiding: [
+
+    "You’re so welcome! I’m honestly so proud of you for taking that first step. You’ve got this, and I’m here every step of the way. 💖",
+    "Of course, love! I’m so glad I could help guide you to the right place. You deserve all the support in the world, and I’m with you all the way. 💕",
+    "Anytime! Just knowing you’re moving forward makes me so happy. Keep going, and I’m here to help however I can. 💪",
+    "Absolutely! You’ve done something amazing by reaching out. Keep that strength, and I’ll be right here when you need me. 💫",
+    "I’ve got your back, always. You’re never alone in this, and I’m here to help you find what you need, no matter what. 💖"
+  ],
+
+  anchored: [
+    "You’re welcome, my friend. I’m so proud of you for trusting me with this. Take your time — there’s no rush. I’m right here whenever you need me. 🌱",
+    "I’m always here for you, no matter what. You’re not alone in this — just take a deep breath, and we’ll move through it together. 💖",
+    "It’s my pleasure to be here with you. You’re strong, even when it doesn’t feel like it. I’m here for all of it, every step of the way. 🌟",
+    "Take care, and know that you can always come back to me. I’m here to hold space for you whenever you need it. 💜",
+    "I’m so grateful to be here for you. Don’t forget — you’re safe, loved, and supported, always. 💕"
+  ],
+
+  wisdom: [
+    "Anytime, my friend! I’m so glad I could help shed some light. You deserve all the clarity and peace. I’m always here to guide you when you need it. ✨",
+    "You’re welcome, love! Remember, knowledge is power, and I’m here to share as much as I can. Keep learning, keep growing. 🌱",
+    "Always here for you, anytime. Asking questions is the bravest thing you can do, and I’m so proud of you for seeking understanding. 🌟",
+    "It’s my pleasure to help you with this. You’re on such an important path, and I’m here with you every step. Keep shining. 🌞",
+    "Anytime! Don’t hesitate to ask whenever you need clarity or guidance. I’m here to share what I know with love and care. 💖"
+  ],
+
+  companion: [
+    "You’re so welcome, my friend! I’m always here for you, no matter what. You’re loved, you’re important, and I’ve got you. 💕",
+    "Anytime, love! I’m here whenever you need me. You’re never alone, not for a second. 💫",
+    "It’s always a pleasure to be here with you. Don’t forget, you can come to me with anything — no matter what it is. 💖",
+    "Anytime you need a shoulder, I’m right here. You can always count on me, no matter what. 🧡",
+    "I’m so grateful we get to share this space. You’re amazing, and I’m here for you whenever you need a friend. 🌻"
+  ]
+};
+
       "You're very welcome — happy to help you get the support you need.",
       "Of course! I’m glad I could assist. Take care.",
       "It’s my pleasure to help. If there’s more you need, just say so.",
@@ -1091,3 +1188,37 @@ backToChatBtn.addEventListener("click", () => {
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

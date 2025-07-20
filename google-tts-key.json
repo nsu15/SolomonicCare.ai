@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "solomoniccare-tts",
+  "private_key_id": "51bd04ae827872306e1c079914363906ddf6def9",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCM0AJHhRrg8ZiA\nlEak57AaUlJk+dW5gcIHbDGZez3DZ565hlL9KK8cJCWIMGB/e2wU4BY7vkN47JD8\nZPpbvCYOdv730VaOb77co3FdZMurLynnySL/unRQDpmr1eLuXsr+1JA3tID11aCV\nQM8tYOByKAWsCzLE75hDF5PNK8N4GaRNU4UxNAGriR8P7cw1hOkeDFzeQeNyPrea\nr9qYu64flzOwz7LgsRa42x3Lny4b9TOZNiIc4EXVhQQ3Q0ytoO2j/hiqflS9tq6N\nkOBCQeW/758I/+18sh37uUr40OEvtlPwESNTg7hSRjiSPSktI3yoLAABFc0yC4cs\n7iAxq3ElAgMBAAECggEAC8r9ReF0kijprWsS94tH3mHNRhOpE0jgvR+8j67DSh2K\n14gpDyFceQOLTnqZZP6AhhxhAE6Q9rb+oC9ndaNY9JaBXV6KMeeomRs/H/k/GBkd\nGK0UYffK90whu+3FJv2IDAuKqypSL+8yQbhpzCfJjwX3Dk+Ucus2BKMcMm9bMYWk\nanBKGpJAMJcS9oh+2mhRGs/Ox3Zze9ceP0p7lWA+dr1/7LWIBVfyD5Qgv6L6atu6\nHhnUy17mjfuBPlWBNTlrd8zk2CsQguVZt6nNu3FNd4qTU0OAf9zF9Yl3oeFvxudB\nI1sq0o79cyvCMRXDTEcTcz0IYZg5yCVCaep7MnZFyQKBgQDFNcjuYcXLzVcwQFqD\nO++ZADzBAY6W40UHtxyjU14H8YyrJNn9i/FWLhOph5hoHTiOkFez7gMANP6++uaR\nWHPnQRysBcJQ0vXlcCyHAIaG9Qmgkv8rBDtLK5QO5+DXYspwT1cTL8/cfBqh6jJl\n2x4wLXJMEXM8UP7HhReMwJk3nwKBgQC2yjU1sYhDWtMVsncUegK5yOF54P8IKxps\n5IFDxwmT0cE2gpBGiDY3545Ri1au9jXWDCLbxAnNd+GheB8vr1n0gyO/7UgoNLuo\nUz0ays9SUMH6NWGhMrjoSOlitz4h2ga4wFXmVI+CTvJXpqUY+8dPK4FooJiNMVFo\n+Mwbf24wuwKBgAR8k8SwnsJjOo+TdzuzGmFduwQdF/Rg2UoypUkl9Way3SNrpDX7\ngBMY20OpHROJTqcXq5chXBoeGomXxbUa0RA6z/8t5lzWX9fHdIvhvC3H11862OlO\noFa2eBjat6fOzJI/i9iY5t66SBTU8i6VDJvF/Oq0Hu4JXbKGWaHPI+07AoGAcojn\nqHpSgKnjhD/sX7dIB/O4XO8/vnWLvFm+KaMI/Ee9gpNzJc7p8kO0qKHfsgfymenG\n2d/PqKCKj+u91tpQSmb1uqhKw26ve3yU2DnmiJSzxz01rJUkyeAN5V4en4WHGrLh\n4E5yEdu3/HYeEzaIn7IKB25ByI7zjQwAkOZbPEsCgYAwRmFbgsMjnDCuI88Wwidz\nxD+DMCxWvyP8BGySlPVrYcd8HE/u8dd6zy8RtWZR/P9eYYHzmUQUshGsJce997pv\n1KiNOS4QIKlREdPdHNl8LCpWEF90ecCudPDuzJ2dFWUKV0hc1BqSvYZan1CXGK2A\nZ4McK0DGcH4ixM7apaDj9A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "solomoniccare-tts-sa@solomoniccare-tts.iam.gserviceaccount.com",
+  "client_id": "113291910081074998398",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/solomoniccare-tts-sa%40solomoniccare-tts.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
